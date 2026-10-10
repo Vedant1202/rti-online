@@ -182,6 +182,15 @@ async function fileRequestTx(
     at: now,
     payload: { regNo, authority: authority.name, paymentKey, bpl: opts.bpl },
   });
+  if (req.lifeLiberty === "claimed") {
+    await addEvent(tx, {
+      requestId,
+      type: "life_liberty_claimed",
+      actorId: req.citizenId,
+      at: now,
+      payload: { reason: req.lifeLibertyReason },
+    });
+  }
   return { regNo, fresh: true, citizenId: req.citizenId, authorityName: authority.name };
 }
 

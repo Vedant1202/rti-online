@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { NodalActions } from "./nodal-actions";
 import { CpioActions } from "./cpio-actions";
 import { CloseUnpaidButton } from "./close-unpaid";
+import { LifeLibertyDecision } from "./life-liberty-decision";
 import { DAY_MS } from "@/lib/rti/deadlines";
 
 /** Role-specific actions for officers viewing a case. Later tasks add CPIO actions. */
@@ -72,6 +73,9 @@ export async function OfficerPanel({ user, view, now }: { user: User; view: Case
     return (
       <section className="card grid gap-3 border-accent">
         <h2 className="font-bold">Answer this request</h2>
+        {current.lifeLiberty === "claimed" && (
+          <LifeLibertyDecision requestId={current.id} claim={current.lifeLibertyReason ?? ""} />
+        )}
         <CpioActions requestId={current.id} />
       </section>
     );
