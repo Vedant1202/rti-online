@@ -14,5 +14,5 @@ export default defineConfig({
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: "npm run build && PGLITE=memory npm run start", url: baseURL, reuseExistingServer: true, timeout: 240_000 },
+    : { command: "npm run build && PGLITE=memory E2E_CLOCK=true npm run start", url: baseURL, reuseExistingServer: true, timeout: 240_000 },
 });

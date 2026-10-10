@@ -20,11 +20,21 @@ export async function expectPath(page: Page, path: string) {
 
 import type { Browser } from "@playwright/test";
 
-/** A separate signed-in browser context per role, so cookies don't mix. */
+type StorageState = Awaited<ReturnType<import("@playwright/test").BrowserContext["storageState"]>>;
+const sessions = new Map<string, StorageState>();
+
+/**
+ * A separate signed-in browser context per role, so cookies don't mix.
+ * Each email signs in once per run (the app allows 3 codes per 15 minutes per email).
+ */
 export async function as(browser: Browser, email: string, viewport?: { width: number; height: number }) {
-  const context = await browser.newContext(viewport ? { viewport } : {});
+  const saved = sessions.get(email);
+  const context = await browser.newContext({ ...(viewport ? { viewport } : {}), ...(saved ? { storageState: saved } : {}) });
   const page = await context.newPage();
-  await login(page, email);
+  if (!saved) {
+    await login(page, email);
+    sessions.set(email, await context.storageState());
+  }
   return page;
 }
 
@@ -41,4 +51,10 @@ export async function fileViaUi(page: Page, opts: { authority: RegExp; subject: 
   await page.getByRole("button", { name: "Simulate successful payment" }).click();
   const regNo = (await page.getByTestId("reg-no").textContent())!.trim();
   return { url: page.url().split("?")[0], regNo };
+}
+
+/** Moves the server clock forward (test-only route). Always reset in afterEach. */
+export async function moveClock(page: Page, days: number) {
+  const res = await page.request.post("/api/test/clock", { data: { days } });
+  if (!res.ok()) throw new Error(`clock route returned ${res.status()}`);
 }
