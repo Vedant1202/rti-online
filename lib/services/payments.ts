@@ -145,7 +145,7 @@ export async function completePayment(
   return { status: result.status, requestId: result.requestId, regNo: result.regNo };
 }
 
-type Filed = { regNo: string; fresh: boolean; citizenId: string; authorityName: string };
+type Filed = { regNo: string; fresh: boolean; citizenId: string; authorityName: string; subject: string };
 
 /** Marks a paid (or BPL) request as filed with its new registration number. Runs inside a transaction. */
 async function fileRequestTx(
@@ -157,7 +157,7 @@ async function fileRequestTx(
 ): Promise<Filed> {
   const [req] = await tx.select().from(requests).where(eq(requests.id, requestId));
   const [authority] = await tx.select().from(authorities).where(eq(authorities.id, req.authorityId));
-  if (req.regNo) return { regNo: req.regNo, fresh: false, citizenId: req.citizenId, authorityName: authority.name };
+  if (req.regNo) return { regNo: req.regNo, fresh: false, citizenId: req.citizenId, authorityName: authority.name, subject: req.subject };
   if (opts.bpl) {
     // The unique idempotency key makes a repeated BPL filing a no-op.
     await tx
@@ -191,7 +191,7 @@ async function fileRequestTx(
       payload: { reason: req.lifeLibertyReason },
     });
   }
-  return { regNo, fresh: true, citizenId: req.citizenId, authorityName: authority.name };
+  return { regNo, fresh: true, citizenId: req.citizenId, authorityName: authority.name, subject: req.subject };
 }
 
 async function notifyFiled(filed: Filed, requestId: string) {
@@ -200,6 +200,7 @@ async function notifyFiled(filed: Filed, requestId: string) {
     lines: [
       `Your RTI request has been filed with the ${filed.authorityName}.`,
       `Registration number: ${filed.regNo}`,
+      `Subject: ${filed.subject}`,
       "The authority must reply within 30 days. We'll email you at each step.",
     ],
     requestId,
