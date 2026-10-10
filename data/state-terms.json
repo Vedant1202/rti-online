@@ -1,0 +1,39 @@
+{
+  "terms": [
+    "state government",
+    "municipal corporation",
+    "municipal council",
+    "municipality",
+    "nagar palika",
+    "nagar nigam",
+    "gram panchayat",
+    "panchayat samiti",
+    "zilla parishad",
+    "zila parishad",
+    "tehsil office",
+    "tahsildar",
+    "collector office",
+    "district collector",
+    "police station",
+    "state police",
+    "regional transport office",
+    "rto office",
+    "state electricity board",
+    "ration card",
+    "state university",
+    "delhi government",
+    "gnctd",
+    "नगर निगम",
+    "नगर पालिका",
+    "ग्राम पंचायत",
+    "राज्य सरकार",
+    "तहसील",
+    "जिला परिषद"
+  ],
+  "states": [
+    "andhra pradesh", "arunachal pradesh", "assam", "bihar", "chhattisgarh", "goa", "gujarat", "haryana",
+    "himachal pradesh", "jharkhand", "karnataka", "kerala", "madhya pradesh", "maharashtra", "manipur",
+    "meghalaya", "mizoram", "nagaland", "odisha", "punjab", "rajasthan", "sikkim", "tamil nadu", "telangana",
+    "tripura", "uttar pradesh", "uttarakhand", "west bengal", "delhi", "jammu and kashmir", "puducherry"
+  ]
+}

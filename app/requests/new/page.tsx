@@ -8,7 +8,7 @@ export default async function NewRequestPage() {
   await requirePageUser("/requests/new", ["citizen"]);
   const db = await getDb();
   const list = await db
-    .select({ id: authorities.id, code: authorities.code, name: authorities.name, ministry: authorities.ministry })
+    .select({ id: authorities.id, code: authorities.code, name: authorities.name, ministry: authorities.ministry, keywords: authorities.keywords })
     .from(authorities)
     .where(eq(authorities.isCentral, true))
     .orderBy(asc(authorities.name));

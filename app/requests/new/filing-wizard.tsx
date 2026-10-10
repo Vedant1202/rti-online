@@ -6,10 +6,12 @@ import { api } from "@/lib/api-client";
 import { WordCount } from "@/components/word-count";
 import { PdfUpload } from "@/components/pdf-upload";
 import type { Uploaded } from "@/lib/upload-client";
+import { suggestAuthorities } from "@/lib/rti/suggest-authority";
+import { detectStateBody } from "@/lib/rti/state-body";
 
-export type AuthorityOption = { id: string; code: string; name: string; ministry: string };
+export type AuthorityOption = { id: string; code: string; name: string; ministry: string; keywords: string[] };
 
-const STEPS = ["Authority", "Your request", "Review"] as const;
+const STEPS = ["Your request", "Authority", "Review"] as const;
 
 export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }) {
   const router = useRouter();
@@ -33,12 +35,15 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
     return authorities.filter((a) => `${a.name} ${a.ministry} ${a.code}`.toLowerCase().includes(q));
   }, [authorities, query]);
 
+  const suggestions = useMemo(() => suggestAuthorities(`${subject} ${body}`, authorities), [subject, body, authorities]);
+  const stateTerm = useMemo(() => detectStateBody(`${subject} ${body}`), [subject, body]);
+
   const stepValid = [
-    Boolean(authorityId),
     subject.trim().length > 0 &&
       body.trim().length > 0 &&
       (!bpl || bplCertificate) &&
       (!lifeLiberty || lifeLibertyReason.trim().length > 0),
+    Boolean(authorityId),
     true,
   ][step];
 
@@ -78,8 +83,26 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
         ))}
       </ol>
 
-      {step === 0 && (
+      {step === 1 && (
         <section className="card grid gap-4">
+          {stateTerm && <StateWarning term={stateTerm} />}
+          {suggestions.length > 0 && (
+            <div className="grid gap-2" data-testid="suggestions">
+              <p className="label">Suggested from your request</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className={authorityId === a.id ? "btn" : "btn-ghost"}
+                    onClick={() => setAuthorityId(a.id)}
+                  >
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <h2 className="text-lg font-bold">Which public authority holds the information?</h2>
           <input
             className="input"
@@ -116,7 +139,7 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
         </section>
       )}
 
-      {step === 1 && (
+      {step === 0 && (
         <section className="card grid gap-4">
           <div className="grid gap-1">
             <label htmlFor="subject" className="label">
@@ -190,6 +213,7 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
 
       {step === 2 && authority && (
         <section className="card grid gap-3">
+          {stateTerm && <StateWarning term={stateTerm} />}
           <h2 className="text-lg font-bold">Check your request</h2>
           <dl className="grid gap-2 text-sm sm:grid-cols-[10rem_1fr]">
             <dt className="text-muted">Authority</dt>
@@ -232,6 +256,19 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function StateWarning({ term }: { term: string }) {
+  return (
+    <div role="note" className="rounded-md border border-warn bg-warn/10 px-3 py-2 text-sm text-warn" data-testid="state-warning">
+      <p className="font-semibold">Is this about a state government office?</p>
+      <p>
+        Your request mentions &ldquo;{term}&rdquo;. This portal only reaches central government
+        authorities. Requests meant for state bodies are returned, and the fee isn&apos;t refunded. You
+        can still continue if the information is held by a central authority.
+      </p>
     </div>
   );
 }

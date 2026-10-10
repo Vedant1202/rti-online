@@ -31,10 +31,10 @@ export async function as(browser: Browser, email: string, viewport?: { width: nu
 /** Files and pays a request through the UI; returns the case page URL and registration number. */
 export async function fileViaUi(page: Page, opts: { authority: RegExp; subject: string; body: string }) {
   await page.goto("/requests/new");
-  await page.getByRole("radio", { name: opts.authority }).check();
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Subject").fill(opts.subject);
   await page.getByLabel("What information do you want?").fill(opts.body);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("radio", { name: opts.authority }).check();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByRole("button", { name: /^Pay ₹/ }).click();
