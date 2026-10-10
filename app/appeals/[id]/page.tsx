@@ -54,6 +54,11 @@ export default async function AppealPage(props: PageProps<"/appeals/[id]">) {
             .
           </p>
         )}
+        {(clock.state === "met" || clock.state === "overdue") && (
+          <a href={`/api/appeals/${appeal.id}/bundle`} className="btn-ghost w-fit" download>
+            Download case bundle
+          </a>
+        )}
       </section>
 
       {isFaa && appeal.status === "appeal_filed" && (
