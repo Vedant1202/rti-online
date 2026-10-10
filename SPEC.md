@@ -1,6 +1,6 @@
 # Spec: RTI Online Rebuild
 
-Status: **Draft, awaiting group sign-off**
+Status: **Approved, built through Task 21**
 Group 4 · Timeline: 4–6 weeks · Last updated: 8 Oct 2026
 
 ## Objective
@@ -308,3 +308,12 @@ Test rules:
 4. **Can a CPIO close a request when an extra fee stays unpaid?** [Yes, after 30 days unpaid, with an email to the citizen. This is our rule, not the Act's.]
 5. **Should the look copy the real portal?** [No. We copy the flows, data and rules, and show today vs. ours in the presentation.]
 6. **Hindi interface labels (I19)?** [Stretch only. Request content can already be in Hindi.]
+
+## Changes made during the build
+
+- **Word count:** counts whitespace-separated tokens containing a letter or digit, in any script, instead of `Intl.Segmenter`. It's predictable for Hindi and for file numbers like `PPO/2019/4471`.
+- **Filing order:** the wizard asks for the request first, then the authority, so suggestions (I2) and the state-body warning (I3) can use the text.
+- **Second-appeal bundle (I18):** a print-ready HTML file instead of a PDF, because `pdf-lib`'s built-in fonts can't render Hindi. Browsers save it as PDF. `pdf-lib` was removed.
+- **Session cookie:** marked `Secure` whenever the request is HTTPS (always on Vercel) rather than by `NODE_ENV`, so local production builds work over `http://localhost`.
+- **Local and e2e database:** PGlite on disk for development (auto-migrates and seeds itself), in memory for end-to-end tests. The connection is shared through `globalThis` because Next.js bundles route handlers and pages separately.
+- **Hindi interface labels (I19):** not built. It was a stretch goal.
