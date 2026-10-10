@@ -20,7 +20,8 @@ export const POST = route(async (req) => {
   const token = await createSessionToken(result.user);
   (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // Secure whenever served over HTTPS (always on Vercel); plain http://localhost would drop it.
+    secure: new URL(req.url).protocol === "https:" || req.headers.get("x-forwarded-proto") === "https",
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE,

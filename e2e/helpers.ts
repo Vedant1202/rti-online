@@ -8,6 +8,7 @@ export async function login(page: Page, email: string) {
   const code = (await page.getByTestId("dev-code").locator("strong").textContent())!.trim();
   await page.getByLabel("6-digit code").fill(code);
   await page.getByRole("button", { name: "Sign in" }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"));
 }
 
 export const officer = (code: string, tag: string) =>
