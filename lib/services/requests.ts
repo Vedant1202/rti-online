@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { authorities, documents, requests } from "@/lib/db/schema";
+import { authorities, documents, drafts, requests } from "@/lib/db/schema";
 import type { CreateRequestInput } from "@/lib/contract";
 import { badRequest, forbidden } from "@/lib/http";
 import type { User } from "@/lib/auth/rbac";
@@ -51,6 +51,7 @@ export async function createRequest(user: User, input: CreateRequestInput, now: 
     if (docIds.length) {
       await tx.update(documents).set({ requestId: req.id }).where(inArray(documents.id, docIds));
     }
+    await tx.delete(drafts).where(eq(drafts.citizenId, user.id));
     return req;
   });
 }

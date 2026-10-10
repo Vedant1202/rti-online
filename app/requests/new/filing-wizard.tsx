@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { WordCount } from "@/components/word-count";
@@ -8,23 +8,57 @@ import { PdfUpload } from "@/components/pdf-upload";
 import type { Uploaded } from "@/lib/upload-client";
 import { suggestAuthorities } from "@/lib/rti/suggest-authority";
 import { detectStateBody } from "@/lib/rti/state-body";
+import { TEMPLATES, unfilledPlaceholders } from "@/lib/rti/templates";
 
 export type AuthorityOption = { id: string; code: string; name: string; ministry: string; keywords: string[] };
 
 const STEPS = ["Your request", "Authority", "Review"] as const;
 
-export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }) {
+export type Draft = Partial<{
+  subject: string;
+  body: string;
+  authorityId: string | null;
+  attachment: Uploaded | null;
+  bpl: boolean;
+  bplCertificate: Uploaded | null;
+  lifeLiberty: boolean;
+  lifeLibertyReason: string;
+}>;
+
+export function FilingWizard({ authorities, draft }: { authorities: AuthorityOption[]; draft: Draft | null }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [query, setQuery] = useState("");
-  const [authorityId, setAuthorityId] = useState<string | null>(null);
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
-  const [attachment, setAttachment] = useState<Uploaded | null>(null);
-  const [bpl, setBpl] = useState(false);
-  const [bplCertificate, setBplCertificate] = useState<Uploaded | null>(null);
-  const [lifeLiberty, setLifeLiberty] = useState(false);
-  const [lifeLibertyReason, setLifeLibertyReason] = useState("");
+  const [authorityId, setAuthorityId] = useState<string | null>(draft?.authorityId ?? null);
+  const [subject, setSubject] = useState(draft?.subject ?? "");
+  const [body, setBody] = useState(draft?.body ?? "");
+  const [attachment, setAttachment] = useState<Uploaded | null>(draft?.attachment ?? null);
+  const [bpl, setBpl] = useState(draft?.bpl ?? false);
+  const [bplCertificate, setBplCertificate] = useState<Uploaded | null>(draft?.bplCertificate ?? null);
+  const [lifeLiberty, setLifeLiberty] = useState(draft?.lifeLiberty ?? false);
+  const [lifeLibertyReason, setLifeLibertyReason] = useState(draft?.lifeLibertyReason ?? "");
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const firstRender = useRef(true);
+
+  // Autosave: saves the draft to the account 1.5 s after the last change, so it resumes on any device.
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const payload: Draft = { subject, body, authorityId, attachment, bpl, bplCertificate, lifeLiberty, lifeLibertyReason };
+    const timer = setTimeout(async () => {
+      const res = await fetch("/api/drafts", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ payload }),
+      }).catch(() => null);
+      if (res?.ok) setSavedAt(new Date());
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [subject, body, authorityId, attachment, bpl, bplCertificate, lifeLiberty, lifeLibertyReason]);
+
+  const placeholders = useMemo(() => unfilledPlaceholders(`${subject}\n${body}`), [subject, body]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -41,6 +75,7 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
   const stepValid = [
     subject.trim().length > 0 &&
       body.trim().length > 0 &&
+      placeholders.length === 0 &&
       (!bpl || bplCertificate) &&
       (!lifeLiberty || lifeLibertyReason.trim().length > 0),
     Boolean(authorityId),
@@ -71,6 +106,13 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
 
   return (
     <div className="grid gap-6">
+      <p className="text-xs text-muted" aria-live="polite" data-testid="draft-status">
+        {savedAt
+          ? `Draft saved at ${savedAt.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}`
+          : draft
+            ? "Restored your saved draft."
+            : "Your draft saves automatically."}
+      </p>
       <ol className="flex flex-wrap gap-2 text-sm" aria-label="Steps">
         {STEPS.map((label, i) => (
           <li
@@ -141,6 +183,24 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
 
       {step === 0 && (
         <section className="card grid gap-4">
+          <div className="grid gap-2">
+            <p className="label">Start from a template</p>
+            <div className="flex flex-wrap gap-2">
+              {TEMPLATES.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="rounded-full border border-line px-3 py-1 text-sm hover:border-accent"
+                  onClick={() => {
+                    setSubject(t.subject);
+                    setBody(t.body);
+                  }}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="grid gap-1">
             <label htmlFor="subject" className="label">
               Subject
@@ -167,6 +227,11 @@ export function FilingWizard({ authorities }: { authorities: AuthorityOption[] }
               placeholder="Write in English, Hindi or any Indian language. Mention dates, file numbers and the exact records you want."
             />
             <WordCount text={body} />
+            {placeholders.length > 0 && (
+              <p className="text-sm text-warn" data-testid="placeholders">
+                Replace these with your details: {placeholders.join(", ")}
+              </p>
+            )}
           </div>
           <PdfUpload label="Supporting document" kind="attachment" value={attachment} onChange={setAttachment} />
           <label className="flex items-start gap-2 text-sm">

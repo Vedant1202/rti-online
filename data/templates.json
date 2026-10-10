@@ -1,0 +1,37 @@
+[
+  {
+    "id": "pension-status",
+    "title": "Pension or gratuity status",
+    "subject": "Status of my pension case",
+    "body": "Please provide the following information about my pension case (PPO number [PPO number], retired on [retirement date]):\n1. The current status of my pension file and the section where it is pending.\n2. The dates on which the file moved between sections since [date].\n3. Copies of the file notings on my case.",
+    "keywords": ["pension"]
+  },
+  {
+    "id": "answer-sheet",
+    "title": "Copy of an exam answer sheet",
+    "subject": "Certified copy of my answer sheet",
+    "body": "Please provide a certified copy of my evaluated answer sheet for the [exam name] examination held on [exam date], roll number [roll number], paper [paper or subject], including the marks awarded for each question.",
+    "keywords": ["exam"]
+  },
+  {
+    "id": "file-notings",
+    "title": "File notings on my application",
+    "subject": "File notings on my application",
+    "body": "I submitted an application for [what you applied for] on [date] (reference number [reference number]). Please provide:\n1. Copies of all file notings and correspondence on it.\n2. The names and designations of the officers who handled it.\n3. The reason for the delay, if a decision is pending.",
+    "keywords": ["application"]
+  },
+  {
+    "id": "tender",
+    "title": "Tender or contract records",
+    "subject": "Records of tender [tender number]",
+    "body": "Please provide copies of the following records for tender number [tender number] for [work description]:\n1. The notice inviting tenders and bid evaluation sheet.\n2. The work order issued and the contract value.\n3. Payments released to the contractor to date.",
+    "keywords": ["tender"]
+  },
+  {
+    "id": "grievance",
+    "title": "Action taken on my complaint",
+    "subject": "Action taken on my complaint",
+    "body": "I submitted a complaint on [date] about [subject of complaint] (reference number [reference number]). Please provide:\n1. The action taken on my complaint, with dates.\n2. Copies of any inquiry report or reply prepared.\n3. The name of the officer currently responsible.",
+    "keywords": ["complaint"]
+  }
+]
