@@ -1,0 +1,26 @@
+[
+  {
+    "code": "DOPAT",
+    "name": "Department of Personnel and Training",
+    "ministry": "Ministry of Personnel, Public Grievances and Pensions",
+    "keywords": ["recruitment", "upsc", "ssc", "ias", "promotion", "deputation", "civil services", "transfer posting", "service rules", "rti act", "cadre"]
+  },
+  {
+    "code": "DOPPW",
+    "name": "Department of Pension and Pensioners' Welfare",
+    "ministry": "Ministry of Personnel, Public Grievances and Pensions",
+    "keywords": ["pension", "pensioner", "ppo", "gratuity", "family pension", "retirement", "commutation", "पेंशन", "सेवानिवृत्ति"]
+  },
+  {
+    "code": "MORLY",
+    "name": "Ministry of Railways",
+    "ministry": "Ministry of Railways",
+    "keywords": ["train", "railway", "ticket", "irctc", "refund", "station", "coach", "platform", "rrb", "level crossing", "रेल", "ट्रेन", "टिकट"]
+  },
+  {
+    "code": "MHOME",
+    "name": "Ministry of Home Affairs",
+    "ministry": "Ministry of Home Affairs",
+    "keywords": ["passport verification", "citizenship", "visa", "foreigner", "border", "census", "crpf", "bsf", "disaster", "oci", "नागरिकता"]
+  }
+]
