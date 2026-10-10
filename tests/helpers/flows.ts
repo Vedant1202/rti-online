@@ -25,3 +25,19 @@ export async function fileAndPay(
   const { regNo } = await completePayment(c.paymentId, "success", now);
   return { id: req.id, regNo: regNo! };
 }
+
+import { forwardRequest } from "@/lib/services/nodal";
+
+/** Files, pays and forwards to one CPIO. */
+export async function fileAndForward(
+  citizen: User,
+  authorityId: string,
+  nodal: User,
+  cpio: User,
+  now: Date,
+  extra: { subject?: string; body?: string; lifeLibertyReason?: string } = {},
+) {
+  const filed = await fileAndPay(citizen, authorityId, now, extra);
+  await forwardRequest(nodal, filed.id, { cpioIds: [cpio.id] }, now);
+  return filed;
+}

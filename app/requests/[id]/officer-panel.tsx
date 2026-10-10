@@ -6,6 +6,7 @@ import type { CaseView } from "@/lib/services/views";
 import { transferClock } from "@/lib/rti/deadlines";
 import { formatDate } from "@/lib/format";
 import { NodalActions } from "./nodal-actions";
+import { CpioActions } from "./cpio-actions";
 
 /** Role-specific actions for officers viewing a case. Later tasks add CPIO actions. */
 export async function OfficerPanel({ user, view, now }: { user: User; view: CaseView; now: Date }) {
@@ -39,6 +40,15 @@ export async function OfficerPanel({ user, view, now }: { user: User; view: Case
           cpios={cpios.map((c) => ({ id: c.id, name: c.name ?? "CPIO" }))}
           authorities={others}
         />
+      </section>
+    );
+  }
+  const isAssignedCpio = user.role === "admin" || current.assignedCpioId === user.id;
+  if ((user.role === "cpio" || user.role === "admin") && isAssignedCpio && ["forwarded", "documents_requested"].includes(current.status)) {
+    return (
+      <section className="card grid gap-3 border-accent">
+        <h2 className="font-bold">Answer this request</h2>
+        <CpioActions requestId={current.id} />
       </section>
     );
   }
