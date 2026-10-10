@@ -8,6 +8,7 @@ import { Pill } from "@/components/pill";
 import { ClockBadge, ClockSummary } from "@/components/clock-badge";
 import { Timeline } from "@/components/timeline";
 import { CitizenActions } from "./citizen-actions";
+import { OfficerPanel } from "./officer-panel";
 
 export default async function CasePage(props: PageProps<"/requests/[id]">) {
   const { id } = await props.params;
@@ -51,6 +52,8 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
           {view.cpioName && ` · ${view.cpioName}`}
         </p>
       </header>
+
+      {user.role !== "citizen" && <OfficerPanel user={user} view={view} now={now} />}
 
       {view.chain.length > 1 && (
         <section className="card grid gap-2">
