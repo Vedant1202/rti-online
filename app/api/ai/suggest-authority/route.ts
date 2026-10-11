@@ -11,3 +11,6 @@ export const POST = route(async (req) => {
   const user = await requireUser(["citizen"]);
   return Response.json(await recommendAuthority(user, await readJson(req, body), await getNow()));
 });
+
+// AI calls can take up to 40 s (see lib/ai/gemini.ts).
+export const maxDuration = 60;

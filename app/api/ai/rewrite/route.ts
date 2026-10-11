@@ -12,3 +12,6 @@ export const POST = route(async (req) => {
   const { text } = await readJson(req, body);
   return Response.json(await rewriteFormally(user, { text }, await getNow()));
 });
+
+// AI calls can take up to 40 s (see lib/ai/gemini.ts).
+export const maxDuration = 60;

@@ -24,7 +24,8 @@ export type AiModel = {
   generateJson<T>(opts: { system: string; prompt: string; schema: Record<string, unknown> }): Promise<T>;
 };
 
-export const AI_TIMEOUT_MS = 15_000;
+// Generous: a long formal rewrite can take a while on the free tier. The UI shows a loader meanwhile.
+export const AI_TIMEOUT_MS = 40_000;
 
 export function withTimeout<T>(promise: Promise<T>, ms = AI_TIMEOUT_MS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -61,20 +62,28 @@ export function getAiModel(): AiModel {
   const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
   return {
     async generateJson<T>({ system, prompt, schema }: { system: string; prompt: string; schema: Record<string, unknown> }) {
-      const { GoogleGenAI } = await import("@google/genai");
+      const { GoogleGenAI, ThinkingLevel } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey });
+      const call = (lowThinking: boolean) =>
+        ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction: system,
+            temperature: 0.2,
+            responseMimeType: "application/json",
+            responseJsonSchema: schema,
+            // These are simple tasks: keep the model's "thinking" low so answers come back quickly.
+            ...(lowThinking ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
+          },
+        });
       let response;
       try {
         response = await withTimeout(
-          ai.models.generateContent({
-            model,
-            contents: prompt,
-            config: {
-              systemInstruction: system,
-              temperature: 0.2,
-              responseMimeType: "application/json",
-              responseJsonSchema: schema,
-            },
+          call(true).catch((err) => {
+            // Older models reject thinkingLevel: retry once with the model's default.
+            if ((err as { status?: number }).status === 400) return call(false);
+            throw err;
           }),
         );
       } catch (err) {
