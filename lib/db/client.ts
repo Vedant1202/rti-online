@@ -24,8 +24,10 @@ export function setDbForTests(db: Db) {
 }
 
 async function connect(): Promise<Db> {
+  // PGLITE=file or PGLITE=memory forces the embedded database even when DATABASE_URL is set
+  // (neon link writes the production URL into .env.local; local dev and e2e must not use it).
   const url = process.env.DATABASE_URL;
-  if (url?.startsWith("postgres")) {
+  if (!process.env.PGLITE && url?.startsWith("postgres")) {
     const { Pool } = await import("@neondatabase/serverless");
     const { drizzle } = await import("drizzle-orm/neon-serverless");
     return drizzle({ client: new Pool({ connectionString: url }), schema }) as unknown as Db;
