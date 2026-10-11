@@ -113,6 +113,9 @@ export const payments = pgTable("payments", {
   amountPaise: integer("amount_paise").notNull(),
   idempotencyKey: text("idempotency_key").notNull().unique(),
   status: text("status").$type<"pending" | "succeeded" | "failed">().notNull().default("pending"),
+  // Receipt only: the card brand and last 4 digits. Full numbers and CVCs are never received.
+  cardBrand: text("card_brand").$type<"visa" | "mastercard" | "amex" | "rupay">(),
+  cardLast4: text("card_last4"),
   createdAt: createdAt(),
   completedAt: ts("completed_at"),
 });

@@ -1,6 +1,7 @@
 import type { CaseView } from "@/lib/services/views";
 import { formatDateTime } from "@/lib/format";
 import { formatRupees } from "@/lib/rti/fees";
+import { paidLine, type CardSummary } from "@/lib/card";
 
 type Event = CaseView["timeline"][number];
 type Doc = CaseView["documents"][number];
@@ -11,7 +12,16 @@ function describe(e: Event): { title: string; detail?: string; tone: string } {
   const p = e.payload;
   switch (e.type) {
     case "filed":
-      return { title: p.bpl ? "Filed (no fee, below poverty line)" : "Filed and paid", detail: `Registration number ${str(p.regNo)}`, tone: "bg-ok" };
+      return {
+        title: p.bpl ? "Filed (no fee, below poverty line)" : "Filed and paid",
+        detail: [
+          `Registration number ${str(p.regNo)}.`,
+          !p.bpl && Number(p.amountPaise) > 0 ? paidLine(Number(p.amountPaise), p.card as CardSummary | null) : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        tone: "bg-ok",
+      };
     case "forwarded":
       return { title: `Forwarded to ${str(p.cpioNames) || "the CPIO"}`, tone: "bg-ok" };
     case "split":
@@ -23,7 +33,11 @@ function describe(e: Event): { title: string; detail?: string; tone: string } {
     case "fee_requested":
       return { title: `Additional fee requested: ${formatRupees(Number(p.totalPaise))}`, detail: "The reply clock is paused until you pay.", tone: "bg-warn" };
     case "fee_paid":
-      return { title: `Additional fee paid: ${formatRupees(Number(p.amountPaise))}`, detail: "The reply clock restarted.", tone: "bg-ok" };
+      return {
+        title: `Additional fee paid: ${formatRupees(Number(p.amountPaise))}`,
+        detail: `${paidLine(Number(p.amountPaise), p.card as CardSummary | null)} The reply clock restarted.`,
+        tone: "bg-ok",
+      };
     case "documents_requested":
       return { title: "Document requested", detail: str(p.note), tone: "bg-warn" };
     case "documents_uploaded":

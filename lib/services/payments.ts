@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
 import { authorities, feeDemands, payments, requests } from "@/lib/db/schema";
 import { RTI_FEE_PAISE } from "@/lib/contract";
+import { paidLine } from "@/lib/card";
 import { badRequest, conflict, forbidden, notFound } from "@/lib/http";
 import type { User } from "@/lib/auth/rbac";
 import { addEvent, type Tx } from "./events";
@@ -69,7 +70,8 @@ export function signWebhook(paymentId: string, outcome: "success" | "failure"): 
 }
 
 /** What the mock gateway calls back. Verifies the signature, then completes the payment idempotently. */
-export type CardSummary = { brand: "visa" | "mastercard" | "amex" | "rupay"; last4: string };
+export type { CardSummary } from "@/lib/card";
+import type { CardSummary } from "@/lib/card";
 
 export async function handleWebhook(
   paymentId: string,
@@ -91,14 +93,18 @@ export async function completePayment(
   paymentId: string,
   outcome: "success" | "failure",
   now: Date,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stored in v2 Task 5
   card?: CardSummary,
 ): Promise<PaymentOutcome> {
   const db = await getDb();
   const result = await db.transaction(async (tx) => {
     const [won] = await tx
       .update(payments)
-      .set({ status: outcome === "success" ? "succeeded" : "failed", completedAt: now })
+      .set({
+        status: outcome === "success" ? "succeeded" : "failed",
+        completedAt: now,
+        cardBrand: outcome === "success" ? (card?.brand ?? null) : null,
+        cardLast4: outcome === "success" ? (card?.last4 ?? null) : null,
+      })
       .where(and(eq(payments.id, paymentId), eq(payments.status, "pending")))
       .returning();
     if (!won) {
@@ -111,7 +117,10 @@ export async function completePayment(
       return { status: "failed" as const, requestId: won.requestId, regNo: null, notify: null, filed: null };
     }
     if (won.purpose === "fee") {
-      const filed = await fileRequestTx(tx, won.requestId, won.id, now, { bpl: false });
+      const filed = await fileRequestTx(tx, won.requestId, won.id, now, {
+        bpl: false,
+        receipt: { amountPaise: won.amountPaise, card: card ?? null },
+      });
       return { status: "succeeded" as const, requestId: won.requestId, regNo: filed.regNo, notify: null, filed };
     }
     // Additional fee: close the demand and resume the reply clock (s.7(3)).
@@ -126,13 +135,13 @@ export async function completePayment(
       type: "fee_paid",
       actorId: req.citizenId,
       at: now,
-      payload: { amountPaise: won.amountPaise },
+      payload: { amountPaise: won.amountPaise, card: card ?? null },
     });
     return {
       status: "succeeded" as const,
       requestId: req.id,
       regNo: req.regNo,
-      notify: { citizenId: req.citizenId, regNo: req.regNo, amountPaise: won.amountPaise },
+      notify: { citizenId: req.citizenId, regNo: req.regNo, amountPaise: won.amountPaise, card: card ?? null },
       filed: null,
     };
   });
@@ -142,14 +151,25 @@ export async function completePayment(
   if (result.notify) {
     await notifyCitizen(result.notify.citizenId, {
       subject: `Additional fee received for ${result.notify.regNo}`,
-      lines: ["We received your additional fee. The reply clock has started again."],
+      lines: [
+        "We received your additional fee. The reply clock has started again.",
+        paidLine(result.notify.amountPaise, result.notify.card),
+      ],
       requestId: result.requestId,
     });
   }
   return { status: result.status, requestId: result.requestId, regNo: result.regNo };
 }
 
-type Filed = { regNo: string; fresh: boolean; citizenId: string; authorityName: string; subject: string };
+type Receipt = { amountPaise: number; card: CardSummary | null };
+type Filed = {
+  regNo: string;
+  fresh: boolean;
+  citizenId: string;
+  authorityName: string;
+  subject: string;
+  receipt?: Receipt;
+};
 
 /** Marks a paid (or BPL) request as filed with its new registration number. Runs inside a transaction. */
 async function fileRequestTx(
@@ -157,7 +177,7 @@ async function fileRequestTx(
   requestId: string,
   paymentKey: string,
   now: Date,
-  opts: { bpl: boolean },
+  opts: { bpl: boolean; receipt?: Receipt },
 ): Promise<Filed> {
   const [req] = await tx.select().from(requests).where(eq(requests.id, requestId));
   const [authority] = await tx.select().from(authorities).where(eq(authorities.id, req.authorityId));
@@ -184,7 +204,14 @@ async function fileRequestTx(
     type: "filed",
     actorId: req.citizenId,
     at: now,
-    payload: { regNo, authority: authority.name, paymentKey, bpl: opts.bpl },
+    payload: {
+      regNo,
+      authority: authority.name,
+      paymentKey,
+      bpl: opts.bpl,
+      amountPaise: opts.receipt?.amountPaise ?? 0,
+      card: opts.receipt?.card ?? null,
+    },
   });
   if (req.lifeLiberty === "claimed") {
     await addEvent(tx, {
@@ -195,7 +222,14 @@ async function fileRequestTx(
       payload: { reason: req.lifeLibertyReason },
     });
   }
-  return { regNo, fresh: true, citizenId: req.citizenId, authorityName: authority.name, subject: req.subject };
+  return {
+    regNo,
+    fresh: true,
+    citizenId: req.citizenId,
+    authorityName: authority.name,
+    subject: req.subject,
+    receipt: opts.receipt,
+  };
 }
 
 async function notifyFiled(filed: Filed, requestId: string) {
@@ -205,6 +239,7 @@ async function notifyFiled(filed: Filed, requestId: string) {
       `Your RTI request has been filed with the ${filed.authorityName}.`,
       `Registration number: ${filed.regNo}`,
       `Subject: ${filed.subject}`,
+      ...(filed.receipt ? [paidLine(filed.receipt.amountPaise, filed.receipt.card)] : []),
       "The authority must reply within 30 days. We'll email you at each step.",
     ],
     requestId,

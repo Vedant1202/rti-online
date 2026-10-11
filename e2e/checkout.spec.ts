@@ -36,6 +36,7 @@ test("a saved card fills the form in one click and pays; only brand and last 4 a
 
   await expect(page.getByText("Your request is filed")).toBeVisible();
   await expect(page.getByTestId("reg-no")).toHaveText(/^MORLY\/R\/E\/\d{2}\/\d{5}$/);
+  await expect(page.getByTestId("timeline")).toContainText("Paid ₹10 with Visa •••• 4242");
 });
 
 test("typing a card shows its brand, and invalid details block payment with messages", async ({ page }) => {

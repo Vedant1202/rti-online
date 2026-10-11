@@ -2,7 +2,10 @@
  * Card checks that run in the browser. Card numbers and CVCs never leave the page:
  * the server only ever receives the brand and the last 4 digits.
  */
+import { formatRupees } from "@/lib/rti/fees";
+
 export type Brand = "visa" | "mastercard" | "amex" | "rupay";
+export type CardSummary = { brand: Brand; last4: string };
 
 export const BRAND_NAME: Record<Brand, string> = {
   visa: "Visa",
@@ -118,3 +121,9 @@ export const SAVED_CARDS: (CardInput & { id: string })[] = [
   { id: "visa-4242", number: "4242 4242 4242 4242", expiry: "12/30", cvc: "123", name: "Asha Sharma" },
   { id: "mc-4444", number: "5555 5555 5555 4444", expiry: "08/29", cvc: "456", name: "Ravi Kumar" },
 ];
+
+/** "Paid ₹10 with Visa •••• 4242.", or just "Paid ₹10." when no card is known. */
+export function paidLine(amountPaise: number, card: CardSummary | null | undefined): string {
+  const amount = formatRupees(amountPaise);
+  return card ? `Paid ${amount} with ${BRAND_NAME[card.brand]} •••• ${card.last4}.` : `Paid ${amount}.`;
+}
