@@ -3,6 +3,7 @@ import { requirePageUser } from "@/lib/auth/guard";
 import { getDb } from "@/lib/db/client";
 import { authorities } from "@/lib/db/schema";
 import { loadDraft } from "@/lib/services/drafts";
+import { aiEnabled } from "@/lib/ai/gemini";
 import { FilingWizard, type Draft } from "./filing-wizard";
 
 export default async function NewRequestPage() {
@@ -17,7 +18,7 @@ export default async function NewRequestPage() {
   return (
     <div className="grid gap-6">
       <h1 className="text-2xl font-bold">File an RTI request</h1>
-      <FilingWizard authorities={list} draft={(draft?.payload as Draft) ?? null} />
+      <FilingWizard authorities={list} draft={(draft?.payload as Draft) ?? null} aiEnabled={aiEnabled()} />
     </div>
   );
 }

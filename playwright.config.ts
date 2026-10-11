@@ -14,5 +14,5 @@ export default defineConfig({
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: "npm run build && PGLITE=memory E2E_CLOCK=true SEED_EMAIL_BASE=team@example.com npm run start", url: baseURL, reuseExistingServer: true, timeout: 240_000 },
+    : { command: "npm run build && PGLITE=memory E2E_CLOCK=true SEED_EMAIL_BASE=team@example.com GEMINI_API_KEY=e2e-placeholder-never-called npm run start", url: baseURL, reuseExistingServer: true, timeout: 240_000 },
 });

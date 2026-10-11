@@ -1,7 +1,15 @@
 import { expect, type Page } from "@playwright/test";
 
+/** Tests never call the real Gemini: AI routes answer "switched off" unless a test stubs them. */
+export async function stubAiOff(page: Page) {
+  await page.route("**/api/ai/**", (route) =>
+    route.fulfill({ status: 503, json: { error: "AI features are switched off on this site.", code: "disabled" } }),
+  );
+}
+
 /** Signs in through the real OTP flow, reading the code from the demo-mode banner. */
 export async function login(page: Page, email: string) {
+  await stubAiOff(page);
   await page.goto("/login");
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Email me a code" }).click();
@@ -31,6 +39,7 @@ export async function as(browser: Browser, email: string, viewport?: { width: nu
   const saved = sessions.get(email);
   const context = await browser.newContext({ ...(viewport ? { viewport } : {}), ...(saved ? { storageState: saved } : {}) });
   const page = await context.newPage();
+  await stubAiOff(page);
   if (!saved) {
     await login(page, email);
     sessions.set(email, await context.storageState());

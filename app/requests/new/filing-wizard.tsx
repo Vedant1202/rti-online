@@ -9,6 +9,7 @@ import type { Uploaded } from "@/lib/upload-client";
 import { suggestAuthorities } from "@/lib/rti/suggest-authority";
 import { detectStateBody } from "@/lib/rti/state-body";
 import { TEMPLATES, unfilledPlaceholders } from "@/lib/rti/templates";
+import { RewritePanel } from "./rewrite-panel";
 
 export type AuthorityOption = { id: string; code: string; name: string; ministry: string; keywords: string[] };
 
@@ -25,7 +26,15 @@ export type Draft = Partial<{
   lifeLibertyReason: string;
 }>;
 
-export function FilingWizard({ authorities, draft }: { authorities: AuthorityOption[]; draft: Draft | null }) {
+export function FilingWizard({
+  authorities,
+  draft,
+  aiEnabled,
+}: {
+  authorities: AuthorityOption[];
+  draft: Draft | null;
+  aiEnabled: boolean;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [query, setQuery] = useState("");
@@ -38,6 +47,7 @@ export function FilingWizard({ authorities, draft }: { authorities: AuthorityOpt
   const [lifeLiberty, setLifeLiberty] = useState(draft?.lifeLiberty ?? false);
   const [lifeLibertyReason, setLifeLibertyReason] = useState(draft?.lifeLibertyReason ?? "");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [rewriting, setRewriting] = useState(false);
   const firstRender = useRef(true);
 
   // Autosave: saves the draft to the account 1.5 s after the last change, so it resumes on any device.
@@ -218,15 +228,21 @@ export function FilingWizard({ authorities, draft }: { authorities: AuthorityOpt
             <label htmlFor="body" className="label">
               What information do you want?
             </label>
-            <textarea
-              id="body"
-              className="input min-h-48"
-              maxLength={20_000}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write in English, Hindi or any Indian language. Mention dates, file numbers and the exact records you want."
-            />
+            <div className="relative">
+              <textarea
+                id="body"
+                className="input min-h-48"
+                maxLength={20_000}
+                value={body}
+                readOnly={rewriting}
+                aria-busy={rewriting}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Write in English, Hindi or any Indian language. Mention dates, file numbers and the exact records you want."
+              />
+              {rewriting && <div className="skeleton pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />}
+            </div>
             <WordCount text={body} />
+            {aiEnabled && <RewritePanel text={body} onReplace={setBody} onBusyChange={setRewriting} />}
             {placeholders.length > 0 && (
               <p className="text-sm text-warn" data-testid="placeholders">
                 Replace these with your details: {placeholders.join(", ")}
