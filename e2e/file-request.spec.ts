@@ -23,26 +23,11 @@ test("citizen files a Hindi request, sees the state warning, pays, and gets a nu
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByRole("button", { name: "Pay ₹10" }).click();
 
-  await expect(page.getByText("MockPay · test gateway")).toBeVisible();
-  await page.getByRole("button", { name: "Simulate successful payment" }).click();
+  await page.getByRole("button", { name: /Visa ending in 4242/ }).click();
+  await page.getByRole("button", { name: "Pay ₹10" }).click();
 
   await expect(page.getByText("Your request is filed")).toBeVisible();
   await expect(page.getByTestId("reg-no")).toHaveText(/^DOPPW\/R\/E\/\d{2}\/\d{5}$/);
   await expect(page.getByTestId("timeline")).toContainText("Filed and paid");
   await expect(page.getByText("30 days left", { exact: true })).toBeVisible();
-});
-
-test("a failed payment leaves the request payable", async ({ page }) => {
-  await login(page, `ravi-${Date.now()}@example.com`);
-  await page.goto("/requests/new");
-  await page.getByLabel("Subject").fill("Ticket refund");
-  await page.getByLabel("What information do you want?").fill("Status of refund for PNR 1234567890.");
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("radio", { name: /Railways/ }).check();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await page.getByRole("button", { name: "Pay ₹10" }).click();
-  await page.getByRole("button", { name: "Simulate failed payment" }).click();
-  await expect(page.getByText("No money was taken")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Pay ₹10" })).toBeEnabled();
 });

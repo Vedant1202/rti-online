@@ -69,9 +69,11 @@ export function signWebhook(paymentId: string, outcome: "success" | "failure"): 
 }
 
 /** What the mock gateway calls back. Verifies the signature, then completes the payment idempotently. */
+export type CardSummary = { brand: "visa" | "mastercard" | "amex" | "rupay"; last4: string };
+
 export async function handleWebhook(
   paymentId: string,
-  body: { outcome: "success" | "failure"; signature: string },
+  body: { outcome: "success" | "failure"; signature: string; card?: CardSummary },
   now: Date,
 ) {
   const expected = Buffer.from(signWebhook(paymentId, body.outcome));
@@ -79,7 +81,7 @@ export async function handleWebhook(
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) {
     throw badRequest("Invalid webhook signature.");
   }
-  return completePayment(paymentId, body.outcome, now);
+  return completePayment(paymentId, body.outcome, now, body.card);
 }
 
 export type PaymentOutcome = { status: "succeeded" | "failed" | "pending"; requestId: string; regNo: string | null };
@@ -89,6 +91,8 @@ export async function completePayment(
   paymentId: string,
   outcome: "success" | "failure",
   now: Date,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stored in v2 Task 5
+  card?: CardSummary,
 ): Promise<PaymentOutcome> {
   const db = await getDb();
   const result = await db.transaction(async (tx) => {

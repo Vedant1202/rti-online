@@ -48,7 +48,8 @@ export async function fileViaUi(page: Page, opts: { authority: RegExp; subject: 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByRole("button", { name: /^Pay ₹/ }).click();
-  await page.getByRole("button", { name: "Simulate successful payment" }).click();
+  await page.getByRole("button", { name: /Visa ending in 4242/ }).click();
+  await page.getByRole("button", { name: /^Pay ₹/ }).click();
   const regNo = (await page.getByTestId("reg-no").textContent())!.trim();
   return { url: page.url().split("?")[0], regNo };
 }

@@ -11,5 +11,5 @@ export const POST = route(async (req) => {
   if (result.kind === "filed") {
     return Response.json({ redirectTo: `/requests/${requestId}?filed=1`, regNo: result.regNo });
   }
-  return Response.json({ redirectTo: `/pay/mock/${result.paymentId}` });
+  return Response.json({ redirectTo: `/pay/${result.paymentId}` });
 });

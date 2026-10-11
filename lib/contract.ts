@@ -126,3 +126,9 @@ export const appealInput = z.object({
 export const extendInput = z.object({ reason: text(1_000) });
 export const decideInput = z.object({ order: text(MAX_REQUEST_CHARS), documentId: uuid.optional() });
 export const draftInput = z.object({ payload: z.record(z.string(), z.unknown()) });
+
+// Card checkout: only the brand and the last 4 digits may reach the server. Anything else is rejected.
+export const checkoutInput = z.strictObject({
+  brand: z.enum(["visa", "mastercard", "amex", "rupay"]),
+  last4: z.string().regex(/^\d{4}$/),
+});

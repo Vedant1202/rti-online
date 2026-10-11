@@ -54,7 +54,8 @@ test("golden path 2: split to 2 CPIOs, one replies, one asks a fee, citizen pays
   await expect(citizen.getByText(/Clock paused · 30 days left/)).toBeVisible();
   await citizen.getByRole("link", { name: "Pay ₹24" }).click();
   await citizen.getByRole("button", { name: "Pay ₹24" }).click();
-  await citizen.getByRole("button", { name: "Simulate successful payment" }).click();
+  await citizen.getByRole("button", { name: /Visa ending in 4242/ }).click();
+  await citizen.getByRole("button", { name: "Pay ₹24" }).click();
   await expect(citizen.getByTestId("timeline")).toContainText("Additional fee paid: ₹24");
   // 5 unpaid days don't count: 30 days were left when paused, still 30 now.
   await expect(citizen.getByText("30 days left", { exact: true })).toBeVisible();
