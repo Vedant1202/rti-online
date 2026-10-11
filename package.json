@@ -19,12 +19,14 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
+    "@google/genai": "^2.28.0",
     "@neon/config": "^1.8.6",
     "@neon/env": "^1.5.3",
     "@neondatabase/serverless": "^1.2.0",
     "@vercel/blob": "^2.8.1",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.12",
+    "lucide-react": "^1.55.0",
     "next": "16.4.0",
     "nodemailer": "^10.0.16",
     "react": "19.3.0",
@@ -32,6 +34,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.2",

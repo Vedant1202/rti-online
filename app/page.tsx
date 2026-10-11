@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { InfoTip } from "@/components/info-tip";
 
 export default function Home() {
   return (
     <div className="grid gap-8">
       <section className="grid gap-3">
         <h1 className="text-3xl font-bold text-balance">
-          Ask the central government for information
+          Ask the central government for information{" "}
+          <InfoTip label="Right to Information">
+            The Right to Information Act, 2005 lets any Indian citizen ask a public authority for
+            information it holds. Central ministries must reply within 30 days (section 7).
+          </InfoTip>
         </h1>
         <p className="max-w-2xl text-muted">
           File a Right to Information request with any central ministry, pay the ₹10 fee, and track
