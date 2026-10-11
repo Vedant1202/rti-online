@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Palette: ink navy on cool paper, with stamp red for problems and green for done. */
+:root {
+  --paper: #f4f6f9;
+  --surface: #ffffff;
+  --ink: #15203a;
+  --muted: #5a6479;
+  --line: #d6dce5;
+  --accent: #1f4fa3;
+  --accent-ink: #ffffff;
+  --danger: #b42318;
+  --warn: #9a5a06;
+  --ok: #1d7a46;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0f1420;
+    --surface: #171e2d;
+    --ink: #e5e9f1;
+    --muted: #9ba6b9;
+    --line: #2b3548;
+    --accent: #84a9f5;
+    --accent-ink: #0f1420;
+    --danger: #f08a7e;
+    --warn: #e6a955;
+    --ok: #5ccf93;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-body), var(--font-deva), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-md border border-accent px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/10 disabled:opacity-50;
+}
+.input {
+  @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-2 focus:outline-accent;
+}
+.card {
+  @apply rounded-lg border border-line bg-surface p-5;
+}
+.label {
+  @apply text-sm font-semibold text-ink;
+}
