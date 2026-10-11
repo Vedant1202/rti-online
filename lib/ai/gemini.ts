@@ -78,13 +78,18 @@ export function getAiModel(): AiModel {
           }),
         );
       } catch (err) {
-        if (err instanceof AiError) throw err;
         const status = (err as { status?: number }).status;
+        // Logged for diagnosis on the server only. The API key is never logged.
+        console.error(`[ai] model=${model} status=${status ?? "-"} ${err instanceof AiError ? err.code : (err as Error).message}`.slice(0, 500));
+        if (err instanceof AiError) throw err;
         throw new AiError(status === 429 ? "quota" : "failed");
       }
       if (response.promptFeedback?.blockReason) throw new AiError("blocked");
       const text = response.text;
-      if (!text) throw new AiError("failed");
+      if (!text) {
+        console.error(`[ai] model=${model} empty response, finishReason=${response.candidates?.[0]?.finishReason ?? "-"}`);
+        throw new AiError("failed");
+      }
       try {
         return JSON.parse(text) as T;
       } catch {
