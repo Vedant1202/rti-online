@@ -22,6 +22,16 @@ See [SPEC.md](SPEC.md) for the specification and [tasks/plan.md](tasks/plan.md) 
 - **Appellate authorities** decide first appeals within 30 days, or 45 with a recorded reason
   (s.19(6)). Citizens can download a case bundle for a second appeal to the CIC.
 - **Everyone** can see public reply-time stats per ministry, and switch between System, Light and Dark themes from the header.
+- **Card checkout:** brand detection as you type (Visa, Mastercard, RuPay, American Express), number, expiry
+  and CVC checks, and two saved cards for one-click filling. Nothing is charged. The full card number and CVC
+  never leave the browser; only the brand and last 4 digits are stored for the receipt.
+- **AI (Google Gemini):** "Rewrite formally" turns a rough request into a formal one in the same language,
+  keeping every number and placeholder, shown as a preview you accept or reject. A "Recommended" tag
+  suggests the department that holds the information. Both work only when `GEMINI_API_KEY` is set, with a
+  limit of 20 AI calls per user per hour.
+- **Help and accessibility:** info buttons that explain RTI terms, a Help page, icons throughout, loaders
+  between pages, a skip link, screen-reader announcements, and keyboard support. Automated axe-core checks
+  pass in both themes.
 
 ## Tech stack
 
@@ -77,7 +87,7 @@ To reset the local database, stop the server and delete `.data/pglite`.
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Generates route types, then `tsc --noEmit` |
 | `npm test` | Unit and integration tests (in-memory Postgres) |
-| `npm run test:e2e` | Playwright end-to-end tests, desktop and 375px |
+| `npm run test:e2e` | Playwright end-to-end and accessibility (axe-core) tests, desktop and 375px |
 | `npm run db:generate` | Create a migration from `lib/db/schema.ts` |
 | `npm run db:migrate` | Apply migrations to `DATABASE_URL` (or the local database) |
 | `npm run db:seed` | Authorities and officer accounts |
@@ -93,7 +103,8 @@ To reset the local database, stop the server and delete `.data/pglite`.
 5. Set these environment variables in Vercel: `DATABASE_URL`, `SESSION_SECRET` (32+ random
    characters), `OTP_PEPPER`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `SEED_EMAIL_BASE` (the Gmail
    address), `MOCK_PAYMENT_SECRET`, `CRON_SECRET`, `APP_URL` (your `https://….vercel.app` URL),
-   and optionally `EMAIL_ALLOWLIST` and `DEMO_SHOW_OTP=true` as a live-demo fallback.
+   `GEMINI_API_KEY` (from Google AI Studio, for the AI features), and optionally `GEMINI_MODEL`
+   (default `gemini-flash-latest`), `EMAIL_ALLOWLIST` and `DEMO_SHOW_OTP=true` as a live-demo fallback.
    `BLOB_READ_WRITE_TOKEN` is added by Vercel when you connect the Blob store.
 6. Run migrations and seed against Neon from your machine:
 

@@ -77,21 +77,31 @@ export function getAiModel(): AiModel {
             ...(lowThinking ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
           },
         });
+      const statusOf = (err: unknown) => (err as { status?: number }).status;
       let response;
       try {
         response = await withTimeout(
-          call(true).catch((err) => {
-            // Older models reject thinkingLevel: retry once with the model's default.
-            if ((err as { status?: number }).status === 400) return call(false);
-            throw err;
-          }),
+          call(true)
+            .catch((err) => {
+              // Older models reject thinkingLevel: retry once with the model's default.
+              if (statusOf(err) === 400) return call(false);
+              throw err;
+            })
+            .catch(async (err) => {
+              // Google sometimes answers "high demand" (503) or rate-limits (429): wait briefly, retry once.
+              if (statusOf(err) === 503 || statusOf(err) === 429) {
+                await new Promise((r) => setTimeout(r, 1500));
+                return call(true);
+              }
+              throw err;
+            }),
         );
       } catch (err) {
         const status = (err as { status?: number }).status;
         // Logged for diagnosis on the server only. The API key is never logged.
         console.error(`[ai] model=${model} status=${status ?? "-"} ${err instanceof AiError ? err.code : (err as Error).message}`.slice(0, 500));
         if (err instanceof AiError) throw err;
-        throw new AiError(status === 429 ? "quota" : "failed");
+        throw new AiError(status === 429 || status === 503 ? "quota" : "failed");
       }
       if (response.promptFeedback?.blockReason) throw new AiError("blocked");
       const text = response.text;

@@ -1,6 +1,6 @@
 # Spec: RTI Online Rebuild
 
-Status: **Approved, built through Task 21**
+Status: **v1 built; v2 built (see "Version 2" below)**
 Group 4 · Timeline: 4–6 weeks · Last updated: 8 Oct 2026
 
 ## Objective
@@ -317,3 +317,13 @@ Test rules:
 - **Session cookie:** marked `Secure` whenever the request is HTTPS (always on Vercel) rather than by `NODE_ENV`, so local production builds work over `http://localhost`.
 - **Local and e2e database:** PGlite on disk for development (auto-migrates and seeds itself), in memory for end-to-end tests. The connection is shared through `globalThis` because Next.js bundles route handlers and pages separately.
 - **Hindi interface labels (I19):** not built. It was a stretch goal.
+
+## Version 2 (October 2026)
+
+Plan: [tasks/plan.md](tasks/plan.md). Workflow for this project: commit and push directly to `main`.
+
+- **Card checkout:** replaces the mock gateway page. Brand detection, Luhn, length, expiry and CVC checks run in the browser; two saved cards (Visa 4242…, Mastercard 4444…) fill the form; `4000 0000 0000 0002` is declined. The server accepts only `{brand, last4}` (strict schema) and stores them on the payment for the receipt. Nothing is charged. No Stripe name or logo; the site-wide student-project footer stays.
+- **Gemini AI:** server-only `@google/genai` (`GEMINI_API_KEY`, `GEMINI_MODEL`, default `gemini-flash-latest`), low thinking, 40 s timeout, 20 calls per user per hour (`ai_usage` table). "Rewrite formally" keeps the request's language and every number and `[placeholder]` (checked in code, one retry), as a preview with Undo. "Recommended" department picks only from seeded authority IDs, with keyword suggestions as the fallback.
+- **UI:** lucide icons, instant `loading.tsx` skeletons and a top progress bar (the root layout no longer reads cookies; theme is applied by a pre-paint script), busy states on buttons, info buttons and a `/help` page.
+- **Accessibility:** skip link, polite live region for action results, visible focus in both themes, reduced motion, axe-core scans with zero serious or critical issues in light and dark, keyboard-only filing path, Lighthouse accessibility 100 on the landing, filing and case pages.
+- **Schema:** `payments.card_brand`, `payments.card_last4` (migration 0001), `ai_usage` (migration 0002).
