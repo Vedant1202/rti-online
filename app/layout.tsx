@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { SiteHeader } from "@/components/site-header";
+import { THEME_COOKIE, parseTheme } from "@/lib/theme";
 import { Atkinson_Hyperlegible, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 
@@ -20,11 +22,16 @@ export const metadata: Metadata = {
   description: "Student rebuild of the RTI Online portal: file, track and appeal RTI requests.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
-    <html lang="en" className={`${body.variable} ${deva.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      data-theme={theme === "system" ? undefined : theme}
+      className={`${body.variable} ${deva.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col font-sans">
-        <SiteHeader />
+        <SiteHeader theme={theme} />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
         <footer className="border-t border-line bg-surface">
           <p className="mx-auto max-w-5xl px-4 py-4 text-xs text-muted" data-testid="disclaimer">

@@ -21,7 +21,7 @@ See [SPEC.md](SPEC.md) for the specification and [tasks/plan.md](tasks/plan.md) 
   s.7(3)), ask for documents, and decide life-or-liberty claims (48-hour limit).
 - **Appellate authorities** decide first appeals within 30 days, or 45 with a recorded reason
   (s.19(6)). Citizens can download a case bundle for a second appeal to the CIC.
-- **Everyone** can see public reply-time stats per ministry.
+- **Everyone** can see public reply-time stats per ministry, and switch between System, Light and Dark themes from the header.
 
 ## Tech stack
 
@@ -122,4 +122,4 @@ e2e/               Playwright end-to-end tests
 
 ## Git workflow
 
-Branch from `dev` and open pull requests into `dev`. `main` only receives `dev` → `main` merges.
+Commit and push directly to `main`. Vercel deploys production from `main`.
