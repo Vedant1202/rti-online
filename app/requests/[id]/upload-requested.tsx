@@ -14,7 +14,7 @@ export function UploadRequested({ requestId, note }: { requestId: string; note: 
         <strong>The CPIO asked for a document:</strong> {note}
       </p>
       <PdfUpload label="Requested document" kind="requested_document" value={doc} onChange={setDoc} required />
-      <button className="btn w-fit" disabled={busy || !doc} onClick={() => run(`/api/requests/${requestId}/documents/upload`, { documentId: doc!.id })}>
+      <button className="btn w-fit" aria-busy={busy} disabled={busy || !doc} onClick={() => run(`/api/requests/${requestId}/documents/upload`, { documentId: doc!.id })}>
         Send document
       </button>
       <ErrorText error={error} />

@@ -12,7 +12,7 @@ export function PayButton({ requestId, label }: { requestId: string; label: stri
     <div className="grid gap-2">
       <button
         className="btn"
-        disabled={busy}
+        aria-busy={busy} disabled={busy}
         onClick={async () => {
           setBusy(true);
           setError(null);

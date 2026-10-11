@@ -18,7 +18,7 @@ export function FaaActions({ appealId, canExtend }: { appealId: string; canExten
         </label>
         <textarea id="order" className="input min-h-32" value={order} onChange={(e) => setOrder(e.target.value)} />
         <PdfUpload label="Signed order" kind="order" value={doc} onChange={setDoc} />
-        <button className="btn w-fit" disabled={busy || !order.trim()} onClick={() => run(`/api/appeals/${appealId}/decide`, { order, documentId: doc?.id })}>
+        <button className="btn w-fit" aria-busy={busy} disabled={busy || !order.trim()} onClick={() => run(`/api/appeals/${appealId}/decide`, { order, documentId: doc?.id })}>
           Decide appeal
         </button>
       </div>
@@ -28,7 +28,7 @@ export function FaaActions({ appealId, canExtend }: { appealId: string; canExten
             Extend to 45 days (reason is recorded, s.19(6))
           </label>
           <textarea id="extend-reason" className="input min-h-16" value={reason} onChange={(e) => setReason(e.target.value)} />
-          <button className="btn-ghost w-fit" disabled={busy || !reason.trim()} onClick={() => run(`/api/appeals/${appealId}/extend`, { reason })}>
+          <button className="btn-ghost w-fit" aria-busy={busy} disabled={busy || !reason.trim()} onClick={() => run(`/api/appeals/${appealId}/extend`, { reason })}>
             Extend deadline
           </button>
         </div>

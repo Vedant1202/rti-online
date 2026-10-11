@@ -26,7 +26,7 @@ test("citizen files a Hindi request, sees the state warning, pays, and gets a nu
   await expect(page.getByText("MockPay · test gateway")).toBeVisible();
   await page.getByRole("button", { name: "Simulate successful payment" }).click();
 
-  await expect(page.getByRole("status")).toContainText("Your request is filed");
+  await expect(page.getByText("Your request is filed")).toBeVisible();
   await expect(page.getByTestId("reg-no")).toHaveText(/^DOPPW\/R\/E\/\d{2}\/\d{5}$/);
   await expect(page.getByTestId("timeline")).toContainText("Filed and paid");
   await expect(page.getByText("30 days left", { exact: true })).toBeVisible();

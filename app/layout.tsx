@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { SiteHeader } from "@/components/site-header";
-import { THEME_COOKIE, parseTheme } from "@/lib/theme";
+import { HeaderPlaceholder, SiteHeader } from "@/components/site-header";
+import { THEME_COOKIE } from "@/lib/theme";
+import { Suspense } from "react";
 import { AnnouncerProvider } from "@/components/announcer";
+import { NavProgress } from "@/components/nav-progress";
 import { Atkinson_Hyperlegible, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 
@@ -23,14 +24,20 @@ export const metadata: Metadata = {
   description: "Student rebuild of the RTI Online portal: file, track and appeal RTI requests.",
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+// Applies the saved theme before the first paint (no flash), without the layout reading cookies on
+// the server, which would stop Next.js from showing loading screens instantly.
+const themeScript = `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=(light|dark)/);if(m)document.documentElement.dataset.theme=m[1]}catch(e){}})()`;
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      data-theme={theme === "system" ? undefined : theme}
+      suppressHydrationWarning
       className={`${body.variable} ${deva.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="flex min-h-full flex-col font-sans">
         <a
           href="#main"
@@ -38,8 +45,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
         <AnnouncerProvider>
-          <SiteHeader theme={theme} />
+          <Suspense fallback={<HeaderPlaceholder />}>
+            <SiteHeader />
+          </Suspense>
           <main
             id="main"
             tabIndex={-1}

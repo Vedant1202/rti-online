@@ -71,7 +71,7 @@ export function LoginForm({ next }: { next?: string }) {
             onChange={(e) => setEmail(e.target.value)}
           />
           <p className="text-xs text-muted">We&apos;ll email you a 6-digit code. No password needed.</p>
-          <button className="btn" disabled={busy}>
+          <button className="btn" aria-busy={busy} disabled={busy}>
             {busy ? "Sending…" : "Email me a code"}
           </button>
         </form>
@@ -99,7 +99,7 @@ export function LoginForm({ next }: { next?: string }) {
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
           />
-          <button className="btn" disabled={busy}>
+          <button className="btn" aria-busy={busy} disabled={busy}>
             {busy ? "Checking…" : "Sign in"}
           </button>
           <div className="flex justify-between text-sm">
@@ -109,7 +109,7 @@ export function LoginForm({ next }: { next?: string }) {
             <button
               type="button"
               className="text-accent disabled:text-muted"
-              disabled={cooldown > 0 || busy}
+              aria-busy={busy} disabled={cooldown > 0 || busy}
               onClick={() => send()}
             >
               {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}

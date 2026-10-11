@@ -3,21 +3,30 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
+import { useAnnounce } from "./announcer";
 
 /** Posts JSON to an API route, then refreshes the server-rendered page. */
 export function useAction() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  async function run(url: string, body: unknown, after?: (data: Record<string, unknown>) => void) {
+  const announce = useAnnounce();
+  async function run(
+    url: string,
+    body: unknown,
+    after?: (data: Record<string, unknown>) => void,
+    successMessage = "Done.",
+  ) {
     setBusy(true);
     setError(null);
     try {
       const data = await api(url, { body });
       after?.(data);
+      announce(successMessage);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
+      announce((err as Error).message);
     } finally {
       setBusy(false);
     }

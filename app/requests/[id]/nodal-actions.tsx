@@ -46,7 +46,7 @@ export function NodalActions({
           ))}
           <button
             className="btn w-fit"
-            disabled={busy || selected.length === 0}
+            aria-busy={busy} disabled={busy || selected.length === 0}
             onClick={() => run(`/api/requests/${requestId}/forward`, { cpioIds: selected })}
           >
             {selected.length > 1 ? `Split into ${selected.length} parts` : "Forward"}
@@ -71,7 +71,7 @@ export function NodalActions({
           <textarea id="transfer-note" className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} />
           <button
             className="btn w-fit"
-            disabled={busy || !toAuthorityId || !note.trim()}
+            aria-busy={busy} disabled={busy || !toAuthorityId || !note.trim()}
             onClick={() => run(`/api/requests/${requestId}/transfer`, { toAuthorityId, note })}
           >
             Transfer request

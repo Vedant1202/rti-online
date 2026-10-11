@@ -98,3 +98,36 @@ body {
 .label {
   @apply text-sm font-semibold text-ink;
 }
+
+/* Loaders */
+@keyframes nav-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+.nav-progress-bar { animation: nav-progress 1.1s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { opacity: 0.55; }
+  50% { opacity: 1; }
+  100% { opacity: 0.55; }
+}
+.skeleton {
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--line) 70%, var(--surface));
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 0.7s linear infinite; }
+
+/* Any button marked busy shows a spinner before its label. */
+.btn[aria-busy="true"]::before,
+.btn-ghost[aria-busy="true"]::before {
+  content: "";
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}

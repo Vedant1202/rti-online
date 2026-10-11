@@ -74,7 +74,7 @@ export function AppealForm({
           {error}
         </p>
       )}
-      <button className="btn w-fit" disabled={busy || !body.trim() || (late && !delayReason.trim())}>
+      <button className="btn w-fit" aria-busy={busy} disabled={busy || !body.trim() || (late && !delayReason.trim())}>
         {busy ? "Filing…" : "Submit appeal"}
       </button>
     </form>

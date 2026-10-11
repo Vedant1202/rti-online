@@ -15,10 +15,10 @@ export function LifeLibertyDecision({ requestId, claim }: { requestId: string; c
       </label>
       <textarea id="ll-decision" className="input min-h-16" value={reason} onChange={(e) => setReason(e.target.value)} />
       <div className="flex flex-wrap gap-2">
-        <button className="btn" disabled={busy || !reason.trim()} onClick={() => run(`/api/requests/${requestId}/life-liberty`, { accept: true, reason })}>
+        <button className="btn" aria-busy={busy} disabled={busy || !reason.trim()} onClick={() => run(`/api/requests/${requestId}/life-liberty`, { accept: true, reason })}>
           Accept 48-hour limit
         </button>
-        <button className="btn-ghost" disabled={busy || !reason.trim()} onClick={() => run(`/api/requests/${requestId}/life-liberty`, { accept: false, reason })}>
+        <button className="btn-ghost" aria-busy={busy} disabled={busy || !reason.trim()} onClick={() => run(`/api/requests/${requestId}/life-liberty`, { accept: false, reason })}>
           Decline, keep 30 days
         </button>
       </div>

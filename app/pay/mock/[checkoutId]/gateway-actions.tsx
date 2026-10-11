@@ -22,13 +22,13 @@ export function GatewayActions({ checkoutId, cancelUrl }: { checkoutId: string; 
 
   return (
     <div className="grid gap-2">
-      <button className="btn bg-ok" disabled={busy} onClick={() => decide("success")}>
+      <button className="btn bg-ok" aria-busy={busy} disabled={busy} onClick={() => decide("success")}>
         Simulate successful payment
       </button>
-      <button className="btn bg-danger" disabled={busy} onClick={() => decide("failure")}>
+      <button className="btn bg-danger" aria-busy={busy} disabled={busy} onClick={() => decide("failure")}>
         Simulate failed payment
       </button>
-      <button className="btn-ghost" disabled={busy} onClick={() => router.push(cancelUrl)}>
+      <button className="btn-ghost" aria-busy={busy} disabled={busy} onClick={() => router.push(cancelUrl)}>
         Cancel and go back
       </button>
       {error && (

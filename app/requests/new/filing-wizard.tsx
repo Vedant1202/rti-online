@@ -316,7 +316,7 @@ export function FilingWizard({ authorities, draft }: { authorities: AuthorityOpt
             Continue
           </button>
         ) : (
-          <button className="btn" disabled={busy} onClick={submit}>
+          <button className="btn" aria-busy={busy} disabled={busy} onClick={submit}>
             {busy ? "Saving…" : bpl ? "File request" : "Continue to payment"}
           </button>
         )}

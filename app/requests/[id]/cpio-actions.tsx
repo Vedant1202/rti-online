@@ -46,7 +46,7 @@ export function CpioActions({ requestId }: { requestId: string }) {
           <PdfUpload label="Reply document" kind="reply" value={doc} onChange={setDoc} />
           <button
             className="btn w-fit"
-            disabled={busy || !body.trim()}
+            aria-busy={busy} disabled={busy || !body.trim()}
             onClick={() => run(`/api/requests/${requestId}/reply`, { body, documentId: doc?.id })}
           >
             Send reply
@@ -62,7 +62,7 @@ export function CpioActions({ requestId }: { requestId: string }) {
           <textarea id="reject-reason" className="input min-h-24" value={reason} onChange={(e) => setReason(e.target.value)} />
           <button
             className="btn w-fit bg-danger"
-            disabled={busy || !reason.trim()}
+            aria-busy={busy} disabled={busy || !reason.trim()}
             onClick={() => run(`/api/requests/${requestId}/reject`, { reason })}
           >
             Reject request
@@ -100,7 +100,7 @@ export function CpioActions({ requestId }: { requestId: string }) {
           <p className="font-semibold tabular-nums" data-testid="fee-total">Total: ₹{(total / 100).toFixed(total % 100 ? 2 : 0)}</p>
           <button
             className="btn w-fit"
-            disabled={busy || !itemsValid}
+            aria-busy={busy} disabled={busy || !itemsValid}
             onClick={() =>
               run(`/api/requests/${requestId}/fee`, {
                 items: items.map((i) => ({ label: i.label, quantity: i.quantity, unitPaise: toPaise(i.rupees) })),
@@ -118,7 +118,7 @@ export function CpioActions({ requestId }: { requestId: string }) {
             Which document do you need from the applicant?
           </label>
           <textarea id="doc-note" className="input min-h-20" value={docNote} onChange={(e) => setDocNote(e.target.value)} />
-          <button className="btn w-fit" disabled={busy || !docNote.trim()} onClick={() => run(`/api/requests/${requestId}/documents`, { note: docNote })}>
+          <button className="btn w-fit" aria-busy={busy} disabled={busy || !docNote.trim()} onClick={() => run(`/api/requests/${requestId}/documents`, { note: docNote })}>
             Ask for document
           </button>
         </div>
