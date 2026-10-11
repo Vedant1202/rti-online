@@ -2,6 +2,57 @@ import type { CaseView } from "@/lib/services/views";
 import { formatDateTime } from "@/lib/format";
 import { formatRupees } from "@/lib/rti/fees";
 import { paidLine, type CardSummary } from "@/lib/card";
+import type { EventType } from "@/lib/contract";
+import {
+  Archive,
+  ArrowRightLeft,
+  Ban,
+  CalendarClock,
+  CreditCard,
+  FileCheck2,
+  FileQuestion,
+  Gavel,
+  GitFork,
+  HeartPulse,
+  Inbox,
+  IndianRupee,
+  MessageSquareText,
+  Scale,
+  Send,
+  ShieldCheck,
+  ShieldX,
+  Upload,
+  type LucideIcon,
+} from "lucide-react";
+
+const EVENT_ICON: Record<EventType, LucideIcon> = {
+  filed: FileCheck2,
+  forwarded: Send,
+  split: GitFork,
+  transferred_out: ArrowRightLeft,
+  transferred_in: Inbox,
+  fee_requested: IndianRupee,
+  fee_paid: CreditCard,
+  documents_requested: FileQuestion,
+  documents_uploaded: Upload,
+  replied: MessageSquareText,
+  rejected: Ban,
+  closed_unpaid: Archive,
+  life_liberty_claimed: HeartPulse,
+  life_liberty_accepted: ShieldCheck,
+  life_liberty_declined: ShieldX,
+  appeal_filed: Scale,
+  appeal_extended: CalendarClock,
+  appeal_decided: Gavel,
+};
+
+const TONE_TEXT: Record<string, string> = {
+  "bg-ok": "text-ok border-ok",
+  "bg-warn": "text-warn border-warn",
+  "bg-danger": "text-danger border-danger",
+  "bg-accent": "text-accent border-accent",
+  "bg-muted": "text-muted border-line",
+};
 
 type Event = CaseView["timeline"][number];
 type Doc = CaseView["documents"][number];
@@ -71,9 +122,9 @@ export function Timeline({ events, documents }: { events: Event[]; documents: Do
         const d = describe(e);
         const doc = documents.find((x) => x.id === e.payload.documentId);
         return (
-          <li key={e.id} className="grid grid-cols-[1.25rem_1fr] gap-3">
+          <li key={e.id} className="grid grid-cols-[1.75rem_1fr] gap-3">
             <div className="flex flex-col items-center">
-              <span className={`mt-1.5 h-3 w-3 rounded-full ${d.tone}`} />
+              <EventIcon type={e.type} tone={d.tone} />
               {i < events.length - 1 && <span className="w-px flex-1 bg-line" />}
             </div>
             <div className="grid gap-1 pb-5">
@@ -93,5 +144,17 @@ export function Timeline({ events, documents }: { events: Event[]; documents: Do
         );
       })}
     </ol>
+  );
+}
+
+function EventIcon({ type, tone }: { type: EventType; tone: string }) {
+  const Icon = EVENT_ICON[type];
+  return (
+    <span
+      className={`mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border bg-surface ${TONE_TEXT[tone] ?? "text-muted border-line"}`}
+      aria-hidden="true"
+    >
+      <Icon size={14} />
+    </span>
   );
 }

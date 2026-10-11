@@ -8,6 +8,7 @@ import { Pill } from "@/components/pill";
 import { ClockBadge, ClockSummary } from "@/components/clock-badge";
 import { Timeline } from "@/components/timeline";
 import { CitizenActions } from "./citizen-actions";
+import { HelpTip } from "@/components/help-tip";
 import { OfficerPanel } from "./officer-panel";
 
 export default async function CasePage(props: PageProps<"/requests/[id]">) {
@@ -47,9 +48,16 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
               <span className="font-mono" data-testid="reg-no">
                 {current.regNo}
               </span>
+              <HelpTip topic="regNo" />
             </>
           )}
-          {view.cpioName && ` · ${view.cpioName}`}
+          {view.cpioName && (
+            <>
+              {" · "}
+              {view.cpioName}
+              <HelpTip topic="cpio" />
+            </>
+          )}
         </p>
       </header>
 

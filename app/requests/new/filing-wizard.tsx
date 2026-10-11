@@ -12,6 +12,7 @@ import { TEMPLATES, unfilledPlaceholders } from "@/lib/rti/templates";
 import { RewritePanel } from "./rewrite-panel";
 import { useRecommendation } from "./use-recommendation";
 import { InfoTip } from "@/components/info-tip";
+import { HelpTip } from "@/components/help-tip";
 import { Sparkles } from "lucide-react";
 
 export type AuthorityOption = { id: string; code: string; name: string; ministry: string; keywords: string[] };
@@ -190,7 +191,9 @@ export function FilingWizard({
               </div>
             </div>
           )}
-          <h2 className="text-lg font-bold">Which public authority holds the information?</h2>
+          <h2 className="flex items-center gap-1 text-lg font-bold">
+            Which public authority holds the information? <HelpTip topic="publicAuthority" />
+          </h2>
           <input
             className="input"
             placeholder="Search by ministry or department"
@@ -284,7 +287,10 @@ export function FilingWizard({
               />
               {rewriting && <div className="skeleton pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />}
             </div>
-            <WordCount text={body} />
+            <div className="flex items-start gap-1">
+              <WordCount text={body} />
+              <HelpTip topic="wordLimit" align="right" />
+            </div>
             {aiEnabled && <RewritePanel text={body} onReplace={setBody} onBusyChange={setRewriting} />}
             {placeholders.length > 0 && (
               <p className="text-sm text-warn" data-testid="placeholders">
@@ -297,6 +303,9 @@ export function FilingWizard({
             <input type="checkbox" className="mt-1" checked={bpl} onChange={(e) => setBpl(e.target.checked)} />
             <span>I am below the poverty line (no fee, certificate required)</span>
           </label>
+          <span className="-mt-3 ml-6">
+            <HelpTip topic="bpl" />
+          </span>
           {bpl && (
             <PdfUpload
               label="BPL certificate"
@@ -315,6 +324,9 @@ export function FilingWizard({
             />
             <span>This concerns someone&apos;s life or liberty (48-hour reply)</span>
           </label>
+          <span className="-mt-3 ml-6">
+            <HelpTip topic="lifeLiberty" />
+          </span>
           {lifeLiberty && (
             <div className="grid gap-1">
               <label htmlFor="ll-reason" className="label">
@@ -387,7 +399,9 @@ export function FilingWizard({
 function StateWarning({ term }: { term: string }) {
   return (
     <div role="note" className="rounded-md border border-warn bg-warn/10 px-3 py-2 text-sm text-warn" data-testid="state-warning">
-      <p className="font-semibold">Is this about a state government office?</p>
+      <p className="flex items-center gap-1 font-semibold">
+        Is this about a state government office? <HelpTip topic="stateBodies" />
+      </p>
       <p>
         Your request mentions &ldquo;{term}&rdquo;. This portal only reaches central government
         authorities. Requests meant for state bodies are returned, and the fee isn&apos;t refunded. You

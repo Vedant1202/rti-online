@@ -62,7 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <footer className="border-t border-line bg-surface">
             <p className="mx-auto max-w-5xl px-4 py-4 text-xs text-muted" data-testid="disclaimer">
               Student project. Not affiliated with DoPT or the Government of India. Do not enter
-              real personal information.
+              real personal information. <a href="/help">Help</a>
             </p>
           </footer>
         </AnnouncerProvider>

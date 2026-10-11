@@ -3,6 +3,7 @@ import type { CaseView } from "@/lib/services/views";
 import { formatRupees } from "@/lib/rti/fees";
 import { formatDate } from "@/lib/format";
 import { UploadRequested } from "./upload-requested";
+import { HelpTip } from "@/components/help-tip";
 
 /** What the citizen can do next on this request. Later tasks add document upload and appeals. */
 export function CitizenActions({ view }: { view: CaseView; now: string }) {
@@ -23,7 +24,9 @@ export function CitizenActions({ view }: { view: CaseView; now: string }) {
     const open = view.demands.find((d) => !d.paidAt);
     return (
       <div className="grid gap-3" data-testid="fee-breakdown">
-        <p className="font-semibold">The CPIO asked for an additional fee</p>
+        <p className="flex items-center gap-1 font-semibold">
+          The CPIO asked for an additional fee <HelpTip topic="pausedClock" />
+        </p>
         {open && (
           <table className="w-full max-w-md text-sm">
             <tbody>
@@ -65,6 +68,7 @@ export function CitizenActions({ view }: { view: CaseView; now: string }) {
       <Link href={`/appeals/new/${current.id}`} className="btn">
         File first appeal
       </Link>
+      <HelpTip topic="firstAppeal" />
       <span className="text-sm text-muted">
         {window.state === "open"
           ? `Open until ${formatDate(window.closesAt)}.`

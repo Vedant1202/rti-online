@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { FileText, Paperclip } from "lucide-react";
 import type { DocumentKind } from "@/lib/contract";
 import { uploadPdf, type Uploaded } from "@/lib/upload-client";
 
@@ -28,7 +29,10 @@ export function PdfUpload({
       </label>
       {value ? (
         <div className="flex items-center justify-between gap-2 rounded-md border border-line px-3 py-2 text-sm">
-          <span className="truncate">{value.filename}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <FileText size={16} aria-hidden="true" className="shrink-0 text-muted" />
+            <span className="truncate">{value.filename}</span>
+          </span>
           <button type="button" className="text-accent" onClick={() => onChange(null)}>
             Remove
           </button>
@@ -59,7 +63,10 @@ export function PdfUpload({
           }}
         />
       )}
-      <span className="text-xs text-muted">{busy ? "Uploading…" : "PDF only, up to 1 MB."}</span>
+      <span className="flex items-center gap-1 text-xs text-muted">
+        <Paperclip size={12} aria-hidden="true" />
+        {busy ? "Uploading…" : "PDF only, up to 1 MB."}
+      </span>
       {error && (
         <span role="alert" className="text-sm text-danger">
           {error}

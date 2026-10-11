@@ -7,6 +7,7 @@ import { formatDate, plural } from "@/lib/format";
 import { Pill } from "@/components/pill";
 import { Timeline } from "@/components/timeline";
 import { FaaActions } from "./faa-actions";
+import { HelpTip } from "@/components/help-tip";
 
 export default async function AppealPage(props: PageProps<"/appeals/[id]">) {
   const { id } = await props.params;
@@ -46,7 +47,7 @@ export default async function AppealPage(props: PageProps<"/appeals/[id]">) {
         {clock.state === "met" && <p className="text-sm">Decided on {formatDate(clock.decidedAt)}.</p>}
         {view.secondAppealBy && (clock.state === "met" || clock.state === "overdue") && (
           <p className="text-sm">
-            Not satisfied? File a second appeal with the Central Information Commission by{" "}
+            <HelpTip topic="secondAppeal" /> Not satisfied? File a second appeal with the Central Information Commission by{" "}
             <strong>{formatDate(view.secondAppealBy)}</strong> (90 days, s.19(3)) on the{" "}
             <a className="text-accent underline" href="https://dsscic.nic.in/online-appeal-application/onlineappealapplication" target="_blank" rel="noreferrer">
               CIC online portal

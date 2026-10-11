@@ -6,6 +6,7 @@ import { authorities, feeDemands, requests } from "@/lib/db/schema";
 import { RTI_FEE_PAISE } from "@/lib/contract";
 import { formatRupees } from "@/lib/rti/fees";
 import { PayButton } from "./pay-button";
+import { HelpTip } from "@/components/help-tip";
 
 export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
   const { id } = await props.params;
@@ -51,7 +52,9 @@ export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
             </tbody>
           </table>
         )}
-        <p className="text-3xl font-bold tabular-nums">{formatRupees(amount)}</p>
+        <p className="flex items-center gap-1 text-3xl font-bold tabular-nums">
+          {formatRupees(amount)} <HelpTip topic={req.status === "fee_requested" ? "pausedClock" : "fee"} />
+        </p>
         <PayButton
           requestId={req.id}
           label={req.bpl && req.status === "pending_payment" ? "File request (no fee)" : `Pay ${formatRupees(amount)}`}
