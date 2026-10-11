@@ -1,272 +1,201 @@
-# Implementation Plan: RTI Online Rebuild
+# Implementation Plan: RTI Online v2
 
-Source: [SPEC.md](../SPEC.md) · Team of 4 · 6 weeks (weeks 5–6 have slack) · Status: **Draft, awaiting group sign-off**
+Builds on [SPEC.md](../SPEC.md) and the finished v1 ([plan-v1.md](plan-v1.md)). Status: **Draft, awaiting sign-off**. Workflow: commit and push straight to `main`.
 
 ## Overview
 
-We build the portal one working path at a time. Week 1 sets up the shared foundation (project, database, legal-rule functions, login). Weeks 2–3 deliver the main path: file → pay → officer replies → citizen sees it. Week 4 adds fees, appeals and the FAA. Week 5 adds the should-have improvements. Week 6 is stretch goals and demo prep.
+Four additions to the live app:
+
+1. **Card checkout:** a polished card payment page that detects the card brand, validates the number, expiry and CVC, offers two saved cards for quick filling, and never charges anything.
+2. **Icons and loaders:** icons across all pages, a progress bar and skeletons between page switches, and spinners on buttons.
+3. **Gemini AI:** "Rewrite formally" for the request text, and a "Recommended" department tag based on what the citizen wrote. Both show loaders while Gemini works.
+4. **Help and accessibility:** info buttons that explain RTI terms, a Help page, and a full screen-reader and keyboard pass.
 
 ## Architecture decisions
 
-- **One event log drives everything.** Every action appends a row to `request_events`. The timeline, statuses shown to users, and all deadlines are computed from it. This keeps the four people's code consistent.
-- **Legal rules are pure functions in `lib/rti/`** with `now` passed in. They are written and tested in week 1, before any UI uses them.
-- **Shared contract first.** Task 2 fixes the status enum, event types and Zod schemas. After that, people can work in parallel without breaking each other.
-- **Route handlers for the backend** (`app/api/**/route.ts`), not Server Actions, so the backend is easy to point to in the presentation.
-- **The mock payment gateway is a separate page with a signed webhook**, so it behaves like a real gateway (redirect out, callback in).
-
-## Who owns what
-
-| Person | Area | Main tasks |
-|---|---|---|
-| **A** | Platform: setup, login, payments, email | 1, 4, 6, 10 (payment part) |
-| **B** | Citizen side: filing, timeline, appeal | 5, 7, 12, 14, 15, 16 |
-| **C** | Officer side: nodal, CPIO, FAA | 8, 9, 10, 11, 13, 17 |
-| **D** | Data and rules: schema, `lib/rti`, tests, cron, stats | 2, 3, 18, 19, 20 |
-
-Pick A to be the person who owns the Vercel, Neon and Gmail accounts (spec open question 1).
+- **Card details never leave the browser.** Validation runs in the page. The server receives only the brand and last 4 digits, never the full number or CVC, and nothing is stored beyond that. This keeps the checkout safe on a public site, where someone could type a real card.
+- **Stripe-like layout, but not Stripe.** Order summary on the left, card form on the right, clean inputs, and the card brand icon appearing as you type. No Stripe name, logo or wording. The site-wide footer ("Student project… Do not enter real personal information") stays.
+- **The checkout reuses the existing signed-webhook flow.** A valid card "succeeds", the app records the payment and the request is filed exactly as today. Idempotency and the registration-number logic don't change.
+- **Gemini runs only on the server,** through route handlers using `@google/genai`. The key is in `GEMINI_API_KEY` (env only, never in the browser or the repo). The model comes from `GEMINI_MODEL`, default `gemini-flash-latest`. JSON responses are constrained with `responseJsonSchema`.
+- **AI never overwrites silently.** The rewrite shows a preview with Use rewrite / Keep mine. The department tag is a suggestion; the citizen still picks.
+- **AI degrades gracefully.** No key, a timeout (15 s), or the free-tier limit means the buttons explain that the feature is unavailable, and the keyword suggestions keep working.
+- **Per-user AI limit:** 20 calls an hour, so one user can't use up the free quota.
+- **Icons:** `lucide-react` (tree-shaken, one consistent outline style). Card-brand marks are small inline SVGs.
+- **Accessibility is tested automatically:** axe-core checks in Playwright on key pages in both themes, plus keyboard-only e2e paths.
 
 ## Dependency graph
 
 ```
-T1 Scaffold + deploy ─────────────┐
-T2 Schema + contract + seed ──────┼──► T4 OTP login ──► T5 File request ──► T6 Pay + reg no ──┬──► T7 Case timeline ──► T12 Appeal ──► T13 FAA
-T3 lib/rti rules (no I/O) ────────┘                         │                                ├──► T8 Nodal ──► T9 CPIO reply ──┬──► T10 Extra fee
-                                                            └──► T14 Suggest + state warning  │                                ├──► T11 Docs request
-                                                                                               │                                └──► T17 Life/liberty
-                                                                                               └──► T18 Cron · T19 Stats · T20 E2E (after T9/T13)
+T1 Icons + a11y primitives (InfoTip, skip link, live region) ─┬─► T2 Page loaders + button spinners
+                                                               ├─► T9 Icons across pages
+                                                               └─► T10 Help buttons + Help page ─► T11 Accessibility pass
+T3 Card rules (pure) ─► T4 Checkout page ─► T5 Payment receipt
+T6 Gemini client + limits ─┬─► T7 Formal rewrite
+                           └─► T8 Recommended department tag
 ```
 
 ## Task list
 
-### Phase 1: Foundation (week 1)
+### Phase 1: Foundations
 
-#### Task 1: Scaffold and first HTTPS deploy (A)
-**Description:** Create the Next.js + TypeScript project with Tailwind, ESLint, Prettier, Vitest and Playwright set up. Create the GitHub repo (public) with `main` and `dev` branches. Deploy a landing page with the "Student project" footer to Vercel.
+#### Task 1: Icons and accessibility building blocks
+**Description:** Add `lucide-react`. Create an `InfoTip` component (button with `aria-expanded`; the popover closes on Escape or click outside; focus returns to the button), a "Skip to content" link, a polite `aria-live` announcer that client actions can call, and visible focus styles in both themes.
 **Acceptance criteria:**
-- [ ] All commands in the spec run (`dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`)
-- [ ] `https://<project>.vercel.app` shows the landing page, and HTTP redirects to HTTPS
-- [ ] Pushing a branch creates a preview URL
-**Verification:** `npm run build && npm run lint && npm run typecheck && npm test`; open the URL over `http://` and confirm the redirect.
+- [ ] `InfoTip` works by mouse, keyboard (Enter/Space/Escape) and screen reader (announced name and expanded state)
+- [ ] Tab from the address bar reaches "Skip to content" first, and it jumps to `<main>`
+- [ ] Focus rings are visible on every interactive element in light and dark
+**Verification:** Component unit test for InfoTip state; Playwright keyboard test; `npm run build`.
 **Dependencies:** None
-**Files:** `package.json`, `app/layout.tsx`, `app/page.tsx`, `vitest.config.ts`, `playwright.config.ts`
+**Files:** `components/info-tip.tsx`, `components/announcer.tsx`, `app/layout.tsx`, `app/globals.css`, `package.json`
 **Size:** M
 
-#### Task 2: Schema, shared contract and seed data (D)
-**Description:** Connect Drizzle to Neon. Create all tables from the spec's data model. Define the request status enum, event types and Zod input schemas in one shared file. Write the seed script (4 authorities, each with 1 nodal officer, 2 CPIOs and 1 FAA, using Gmail plus-addresses).
+#### Task 2: Loaders between pages and on actions
+**Description:** A thin top progress bar while a link navigation is pending, `loading.tsx` skeletons for My requests, the case page, the officer queues and the stats page, and spinners plus `aria-busy` on every button that calls the server.
 **Acceptance criteria:**
-- [ ] `npm run db:migrate` creates every table on a fresh Neon branch
-- [ ] `npm run db:seed` loads authorities and officers, and is safe to re-run
-- [ ] `lib/contract.ts` exports statuses, event types and Zod schemas that everyone imports
-**Verification:** Run migrate + seed twice; check the row counts in the Neon console.
+- [ ] Clicking a link shows the progress bar within 100 ms and skeletons for slow pages
+- [ ] Buttons show a spinner and are disabled while working; screen readers hear "Loading…"
+- [ ] Respects `prefers-reduced-motion` (no animation; static indicator)
+**Verification:** Playwright test with a throttled network asserting the skeleton appears; manual check with reduced motion on.
 **Dependencies:** T1
-**Files:** `lib/db/schema.ts`, `lib/db/client.ts`, `lib/contract.ts`, `scripts/seed.ts`, `data/authorities.json`
+**Files:** `components/nav-progress.tsx`, `app/**/loading.tsx` (4–5 files), `components/use-action.tsx`, `components/spinner.tsx`
 **Size:** M
 
-#### Task 3: Legal rules library (D, B can help)
-**Description:** Pure functions with unit tests: `regno` (format, parse, split suffix), `deadlines` (reply clock, fee pause, 48-hour, transfer timer, appeal windows, FAA 30/45), `fees` (line items in paise), `wordcount` (Intl.Segmenter, Hindi-safe).
+### Checkpoint 1
+- [ ] All tests pass; build clean; deployed to production and checked
+
+### Phase 2: Card checkout
+
+#### Task 3: Card rules library
+**Description:** Pure functions with tests: brand detection by number prefix (Visa, Mastercard, RuPay, American Express), Luhn check, valid lengths per brand, number formatting (4-4-4-4, or 4-6-5 for Amex), expiry (MM/YY, not past, within 20 years), and CVC length (3, or 4 for Amex).
 **Acceptance criteria:**
-- [ ] Every timing in the spec's "Legal timings" table has at least one test
-- [ ] Hindi text word count matches a hand count on 3 samples
-- [ ] ≥ 90% line coverage on `lib/rti/`
-**Verification:** `npm test -- --coverage tests/unit`
-**Dependencies:** T1 (can run in parallel with T2)
-**Files:** `lib/rti/regno.ts`, `lib/rti/deadlines.ts`, `lib/rti/fees.ts`, `lib/rti/wordcount.ts`, `tests/unit/*`
-**Size:** M
-
-#### Task 4: Email OTP login (A)
-**Description:** Login page → send OTP by Gmail → verify → signed session cookie. Role helper for route handlers. `DEMO_SHOW_OTP` fallback.
-**Acceptance criteria:**
-- [ ] A real email arrives at a team inbox and the code signs you in
-- [ ] Code expires after 10 minutes, can't be reused, and locks after 5 wrong tries; max 3 sends per 15 minutes
-- [ ] Officer accounts land on their dashboard and citizens on theirs
-**Verification:** Integration tests with PGlite and the Nodemailer JSON transport; one manual login on the preview URL.
-**Dependencies:** T1, T2
-**Files:** `lib/auth/otp.ts`, `lib/auth/session.ts`, `lib/auth/rbac.ts`, `lib/email/send.ts`, `app/login/page.tsx`, `app/api/auth/otp/*`
-**Size:** M
-
-### Checkpoint 1 (end of week 1)
-- [ ] Every member can sign in on the preview URL
-- [ ] Schema and contract are merged into `dev`; from now on, schema changes need group agreement
-- [ ] All tests pass; build is clean
-- [ ] Group reviews the plan before Phase 2
-
-### Phase 2: Main path (weeks 2–3)
-
-#### Task 5: Citizen files a request, up to payment (B)
-**Description:** Filing wizard: authority search, Unicode text with live word count (warns past 500), optional PDF ≤ 1 MB to Vercel Blob, BPL declaration with certificate. Saves the request as `pending_payment`.
-**Acceptance criteria:**
-- [ ] A Hindi request of 600 words shows the warning and still saves
-- [ ] Non-PDF or > 1 MB files are rejected with a clear message
-- [ ] BPL without a certificate can't continue
-**Verification:** Integration test for the create route; manual Hindi test at 375px.
-**Dependencies:** T3, T4
-**Files:** `app/requests/new/page.tsx`, `app/api/requests/route.ts`, `app/api/uploads/route.ts`, `components/word-count.tsx`
-**Size:** M
-
-#### Task 6: Mock payment and instant registration number (A)
-**Description:** Checkout with an idempotency key → fake gateway page (Success / Fail / Close tab) → signed webhook → payment row, registration number and `filed` event in one transaction → "filed" email. BPL with certificate skips straight to filed.
-**Acceptance criteria:**
-- [ ] Firing the same webhook 5 times creates 1 payment and 1 registration number (spec criterion 2)
-- [ ] A failed or abandoned payment leaves the request payable again, with no number
-- [ ] Numbers follow `AUTHCODE/R/E/YY/NNNNN` and serials don't collide under parallel requests
-**Verification:** Integration tests, including 5 parallel webhook calls; manual pay on the preview URL.
-**Dependencies:** T5
-**Files:** `app/pay/mock/[checkoutId]/page.tsx`, `app/api/payments/[id]/webhook/route.ts`, `app/api/payments/route.ts`, `lib/payments.ts`
-**Size:** M
-
-#### Task 7: Case timeline and "My requests" (B)
-**Description:** Citizen's list of requests with status and days left, and a case page that renders all events, the reply clock, and grouped split parts.
-**Acceptance criteria:**
-- [ ] Shows due date, days left, and the paused / overdue / met states from `replyClock`
-- [ ] A transferred request shows the new number on the same page
-- [ ] Split parts appear grouped under the original, each with its own status
-**Verification:** Component test with fixed events; manual check against seeded sample cases.
-**Dependencies:** T6
-**Files:** `app/requests/page.tsx`, `app/requests/[id]/page.tsx`, `components/timeline.tsx`, `app/api/requests/[id]/route.ts`
-**Size:** M
-
-#### Task 8: Nodal officer inbox: forward, split, transfer (C)
-**Description:** Inbox of new requests with the 5-day transfer timer. Forward to one CPIO, or to several (creates `/1…/n` parts). Transfer to another authority (creates a new `T` number there). Emails the citizen on each action.
-**Acceptance criteria:**
-- [ ] Forwarding to 3 CPIOs creates 3 parts, each linked to the parent (spec criterion 6)
-- [ ] A transfer creates `MHA…/R/T/26/…` at the receiving authority and closes the original with a link
-- [ ] Only that authority's nodal officer can act (other roles get 403)
-**Verification:** Integration tests for forward, split, transfer and RBAC.
-**Dependencies:** T6
-**Files:** `app/officer/nodal/page.tsx`, `app/api/requests/[id]/forward/route.ts`, `app/api/requests/[id]/transfer/route.ts`
-**Size:** M
-
-#### Task 9: CPIO reply and reject (C)
-**Description:** CPIO workspace listing assigned requests by due date. Reply with text and an optional PDF, or reject with a written reason. Emails the citizen.
-**Acceptance criteria:**
-- [ ] Reply and rejection appear on the citizen's timeline and stop the clock
-- [ ] A rejection can't be saved without a reason
-- [ ] The citizen can download the reply PDF; other users can't
-**Verification:** Integration tests; manual check end to end on the preview URL.
-**Dependencies:** T8
-**Files:** `app/officer/cpio/page.tsx`, `app/api/requests/[id]/reply/route.ts`, `app/api/requests/[id]/reject/route.ts`
-**Size:** M
-
-#### Task 14: Authority suggestion and state-body warning (B)
-**Description:** Suggest up to 3 authorities from keywords in the text. Show the state-body warning before the payment step.
-**Acceptance criteria:**
-- [ ] "train ticket refund" suggests the Ministry of Railways
-- [ ] Text naming a state body or municipality shows the warning before payment, and the citizen can continue (spec criterion 5)
-**Verification:** Unit tests for both matchers; manual check in the wizard.
-**Dependencies:** T5
-**Files:** `lib/rti/suggest-authority.ts`, `lib/rti/state-body.ts`, `data/state-terms.json`, `app/requests/new/page.tsx`
+- [ ] Every brand is detected from its first digits and shows as soon as it's identifiable
+- [ ] Wrong checksum, wrong length, past expiry and short CVC each give a specific message
+- [ ] 100% line coverage of `lib/card.ts`
+**Verification:** `npm test -- tests/unit/card.test.ts --coverage`
+**Dependencies:** None
+**Files:** `lib/card.ts`, `tests/unit/card.test.ts`
 **Size:** S
 
-### Checkpoint 2 (end of week 3)
-- [ ] File → pay → nodal forwards → CPIO replies → citizen sees it, on the preview URL
-- [ ] All tests pass; `dev` merged to `main`; production URL works
-- [ ] Group demo to each other; adjust Phase 3 scope if behind
-
-### Phase 3: Fees, appeals and FAA (week 4)
-
-#### Task 10: Itemised extra fee with a paused clock (C officer side, A payment side)
-**Description:** CPIO adds fee line items. The citizen sees the breakdown and a paused clock, pays through the mock gateway, and the clock resumes.
+#### Task 4: Checkout page
+**Description:** Replace the current gateway page with a card checkout: order summary (department, subject, amount), card number field with a live brand icon, expiry, CVC, name on card, two saved cards that fill the form in one click, inline errors, and a Pay button with a spinner. On submit the browser validates, then sends only `{brand, last4}`; the server completes the payment through the existing signed flow. One declining number shows the failure path.
 **Acceptance criteria:**
-- [ ] The total equals the sum of the line items, in paise
-- [ ] The due date moves later by exactly the unpaid days (s.7(3))
-- [ ] Payment is idempotent, as in T6
-**Verification:** Unit test on the pause maths; integration test for demand → pay.
-**Dependencies:** T6, T9
-**Files:** `app/api/requests/[id]/fee/route.ts`, `components/fee-breakdown.tsx`, `app/officer/cpio/page.tsx`
+- [ ] Choosing a saved card fills every field; Pay succeeds and the request is filed with its number
+- [ ] An invalid number, past expiry or short CVC blocks Pay with a message next to the field, announced to screen readers
+- [ ] The network request carries no full card number or CVC (asserted in e2e)
+- [ ] The page never says "mock", "test" or "demo", and has no Stripe name or logo
+**Verification:** Playwright: saved-card path, invalid-card path, decline path, and request-body inspection; integration test for the new route; desktop and 375px.
+**Dependencies:** T3
+**Files:** `app/pay/[checkoutId]/page.tsx` (replaces `pay/mock`), `app/pay/[checkoutId]/card-form.tsx`, `components/card-brand-icon.tsx`, `app/api/payments/checkout/[id]/route.ts`, `lib/services/payments.ts`
 **Size:** M
 
-#### Task 11: CPIO asks for documents (C)
-**Description:** CPIO requests a document; the citizen uploads it from the case page.
+#### Task 5: Payment receipt
+**Description:** Store the card brand and last 4 digits on the payment (schema change), and show "Paid ₹10 with Visa •••• 4242" on the timeline, in the filed email and on the pay page for extra fees.
 **Acceptance criteria:**
-- [ ] The request shows "documents requested" and an upload button for the citizen only
-- [ ] The upload appears on the CPIO's view and on the timeline
-**Verification:** Integration test.
-**Dependencies:** T9
-**Files:** `app/api/requests/[id]/documents/route.ts`, `app/requests/[id]/page.tsx`
+- [ ] Brand and last 4 are saved; nothing else about the card is
+- [ ] Timeline and email show the receipt line
+**Verification:** Integration test; migration runs on a fresh database and on Neon.
+**Dependencies:** T4
+**Files:** `lib/db/schema.ts`, `drizzle/0001_*.sql`, `lib/services/payments.ts`, `components/timeline.tsx`
 **Size:** S
 
-#### Task 12: One-click first appeal (B)
-**Description:** "File first appeal" button on the case page, available after a reply or after the deadline passes. The ground is preselected when the deadline passed. Creates an `A` number. Late appeals need a reason.
+### Checkpoint 2
+- [ ] File → card checkout → number assigned works on production, desktop and phone
+- [ ] Full card number and CVC never appear in server logs or network bodies
+
+### Phase 3: Gemini AI
+
+#### Task 6: Gemini client, limits and fallbacks
+**Description:** `lib/ai/gemini.ts` wrapping `@google/genai` with a 15 s timeout, JSON-schema responses, clean error types (no key, timeout, quota, blocked), and a per-user limit of 20 calls an hour stored in the database. Unit tests use a fake client; no real API calls in tests.
 **Acceptance criteria:**
-- [ ] The button is disabled before it's allowed, and shows the date it opens
-- [ ] No details are re-entered; the appeal links to the right part when the request was split
-- [ ] After 30 days the appeal still works but asks for a reason for the delay
-**Verification:** Integration tests using `appealWindow` with moved time.
-**Dependencies:** T7, T9
-**Files:** `app/appeals/new/[requestId]/page.tsx`, `app/api/appeals/route.ts`, `app/appeals/[id]/page.tsx`
+- [ ] Without `GEMINI_API_KEY` the AI routes return a clear "AI features are switched off" error and the UI hides or disables the buttons
+- [ ] The 21st call in an hour is refused with a message saying when to try again
+- [ ] The key never reaches the browser bundle (checked with a build-output search)
+**Verification:** `npm test`; `grep -r GEMINI .next/static` finds nothing.
+**Dependencies:** None
+**Files:** `lib/ai/gemini.ts`, `lib/ai/limits.ts`, `lib/db/schema.ts` (ai_usage table), `tests/integration/ai.test.ts`
 **Size:** M
 
-#### Task 13: FAA queue: decide and extend (C)
-**Description:** FAA sees appeals by due date, can extend once to 45 days with a reason, and decides with a written order.
+#### Task 7: Rewrite formally
+**Description:** A "Rewrite formally" button under the request text. Gemini rewrites it as a formal RTI request in the **same language**, keeping every fact, date, number and `[placeholder]` and inventing nothing. While it works, the text area shows a shimmer and "Rewriting…" is announced. The result appears as a preview: Use rewrite / Keep mine, with Undo after using it.
 **Acceptance criteria:**
-- [ ] An extension without a reason is rejected, and an extension past 45 days is impossible
-- [ ] The decision appears on the citizen's appeal timeline, with an email
-**Verification:** Integration tests.
-**Dependencies:** T12
-**Files:** `app/officer/faa/page.tsx`, `app/api/appeals/[id]/decide/route.ts`, `app/api/appeals/[id]/extend/route.ts`
+- [ ] Hindi in, Hindi out; numbers like `PPO/2019/4471` survive unchanged (checked in code after the model replies; rejected and retried once if they don't)
+- [ ] The citizen's text is never replaced without clicking Use rewrite
+- [ ] Loader, success and error states are all announced
+**Verification:** Integration test with a fake model, including the "dropped a number" rejection; Playwright with the AI route stubbed.
+**Dependencies:** T6, T1
+**Files:** `app/api/ai/rewrite/route.ts`, `lib/ai/rewrite.ts`, `app/requests/new/rewrite-panel.tsx`, `app/requests/new/filing-wizard.tsx`
 **Size:** M
 
-#### Task 20: End-to-end golden paths (D)
-**Description:** The spec's 3 Playwright journeys at desktop and 375px, with a test-only clock override that is disabled in production.
+#### Task 8: Recommended department tag
+**Description:** On the department step, Gemini picks the best match from the seeded central authorities (the response is constrained to their IDs) and returns a one-line reason. It's shown as a "Recommended" tag with an AI icon at the top of the list, and the reason is in an InfoTip. Skeleton tags show while loading; keyword suggestions stay as the fallback.
 **Acceptance criteria:**
-- [ ] All 3 paths pass locally and on the preview URL
-- [ ] The clock override returns 404 in production
-**Verification:** `E2E_BASE_URL=<preview> npm run test:e2e`
-**Dependencies:** T10, T13
-**Files:** `e2e/*.spec.ts`, `app/api/test/clock/route.ts`
+- [ ] A train-refund request recommends Railways with a short reason
+- [ ] An ID that isn't in the list is impossible (schema enum) and ignored if returned
+- [ ] With AI off or slow, keyword suggestions appear within 1 s
+**Verification:** Integration test with a fake model; Playwright with the route stubbed for success, slow and failure.
+**Dependencies:** T6
+**Files:** `app/api/ai/suggest-authority/route.ts`, `lib/ai/suggest-authority.ts`, `app/requests/new/filing-wizard.tsx`
 **Size:** M
 
-### Checkpoint 3 (end of week 4)
-- [ ] All must-have (M) features in the spec are done
-- [ ] All 3 golden paths pass on the production URL (spec criterion 1)
-- [ ] Group decides which should-haves fit in week 5
+### Checkpoint 3
+- [ ] With the real key on production: rewrite and recommendation work in English and Hindi
+- [ ] With the key removed locally: the app works and explains that AI is off
 
-### Phase 4: Should-haves (week 5)
+### Phase 4: Icons, help and accessibility
 
-#### Task 15: Autosave drafts (B)
-**Acceptance:** [ ] Draft saves within 5 seconds of typing · [ ] Reopening on another browser restores it · [ ] Draft is deleted once filed
-**Verify:** Integration test; manual check in 2 browsers. **Deps:** T5 · **Files:** `app/api/drafts/route.ts`, `app/requests/new/page.tsx` · **Size:** S
+#### Task 9: Icons across the app
+**Description:** Icons on navigation, landing cards, status pills, timeline events, officer queues, file uploads and key buttons. Decorative icons are `aria-hidden`; icon-only buttons have labels.
+**Acceptance criteria:**
+- [ ] Every timeline event type and every status has an icon
+- [ ] No icon is the only way information is shown (text always present)
+**Verification:** axe-core check (T11); visual check in both themes at 375px and desktop.
+**Dependencies:** T1
+**Files:** `components/site-header.tsx`, `components/timeline.tsx`, `components/pill.tsx`, `components/officer-queue.tsx`, `app/page.tsx`
+**Size:** M
 
-#### Task 16: Request templates (B)
-**Acceptance:** [ ] 4–6 templates load into the editor · [ ] Placeholders (dates, file numbers) are highlighted until filled
-**Verify:** Manual check. **Deps:** T5 · **Files:** `data/templates.json`, `components/template-picker.tsx` · **Size:** S
+#### Task 10: Help buttons and Help page
+**Description:** InfoTips next to RTI terms and tricky fields: CPIO, nodal officer, BPL, life or liberty, registration number, the paused clock, first appeal, and the state-office warning. A `/help` page with a short FAQ, linked from the header and footer.
+**Acceptance criteria:**
+- [ ] Each term above has an InfoTip in plain language, citing the RTI Act section where relevant
+- [ ] `/help` is reachable from every page
+**Verification:** Playwright opens each InfoTip with the keyboard; content review.
+**Dependencies:** T1
+**Files:** `app/help/page.tsx`, `lib/help-content.ts`, the wizard, case page and pay page
+**Size:** M
 
-#### Task 17: Life-or-liberty claim (C)
-**Acceptance:** [ ] Claim needs a justification · [ ] CPIO accept switches to the 48-hour clock; decline returns to 30 days with a reason · [ ] Both show on the timeline
-**Verify:** Unit test (deadlines) + integration test. **Deps:** T9 · **Files:** `app/api/requests/[id]/life-liberty/route.ts`, wizard, CPIO page · **Size:** S
+#### Task 11: Accessibility pass
+**Description:** Add `@axe-core/playwright` and scan the landing, sign-in, filing (every step), checkout, case, officer and stats pages in light and dark. Fix every issue found: heading order, landmarks, label links, error summaries that take focus, focus after actions, colour contrast, and `lang="hi"` on Hindi text where it can be detected.
+**Acceptance criteria:**
+- [ ] Zero axe violations (serious or critical) on all scanned pages in both themes
+- [ ] File → pay → see timeline works with the keyboard alone
+- [ ] Lighthouse accessibility ≥ 95 on the landing, filing and case pages
+**Verification:** `npm run test:e2e -- e2e/a11y.spec.ts`; Lighthouse via DevTools.
+**Dependencies:** T2, T4, T7, T8, T9, T10
+**Files:** `e2e/a11y.spec.ts`, fixes across components
+**Size:** M
 
-#### Task 18: Daily reminder cron (D)
-**Acceptance:** [ ] `vercel.json` schedule is daily (Hobby rule) · [ ] Route rejects calls without `CRON_SECRET` · [ ] Sends due-in-3-days, newly-overdue, appeal-opens and appeal-closing emails, without duplicates on re-run
-**Verify:** Integration test with moved time; `vercel crons run /api/cron/daily` on production. **Deps:** T12 · **Files:** `vercel.json`, `app/api/cron/daily/route.ts` · **Size:** S
-
-#### Task 19: Public stats page (D)
-**Acceptance:** [ ] Median reply days and % overdue per authority over 90 days · [ ] No names, emails or request text exposed · [ ] Works at 375px
-**Verify:** Integration test on seeded data. **Deps:** T9 · **Files:** `app/stats/page.tsx`, `lib/stats.ts` · **Size:** M
-
-### Checkpoint 4 (end of week 5)
-- [ ] Spec success criteria 1–9 all pass
-- [ ] Lighthouse accessibility ≥ 90 on the filing page
-- [ ] Feature freeze: only bug fixes and stretch goals after this
-
-### Phase 5: Stretch and demo (week 6)
-
-- **Task 21: Second-appeal bundle PDF (C):** PDF with request, replies, appeal and order, plus a link to the CIC portal. Size M.
-- **Task 22: Hindi interface labels (B):** stretch only. Size M.
-- **Task 23: Demo prep (everyone):** realistic seed cases, today-vs-ours screenshots, a rehearsal with `DEMO_SHOW_OTP` ready as fallback, and test emails sent from the Gmail account a day before.
+### Checkpoint 4
+- [ ] All unit, integration and e2e tests pass; deployed; production checked on desktop and phone
+- [ ] README and SPEC updated (new env vars, AI, checkout, a11y)
 
 ## Risks and mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Teammates' commits blocked by Vercel Hobby | High | Public repo from day 1 (T1) |
-| Gmail flags the new account or emails are slow during the demo | High | Warm up the account in week 1; `DEMO_SHOW_OTP` fallback |
-| Schema changes break other people's work | High | Contract fixed in T2; later changes need group agreement |
-| Deadline maths wrong (time zones, pauses) | Medium | Pure functions with tests in week 1 (T3); store UTC, show IST |
-| Duplicate registration numbers under parallel payments | Medium | Atomic counter in the same transaction; parallel test in T6 |
-| Free-tier limit hit (Blob uploads, cron) | Medium | 1 MB cap; daily cron only; no load tests on production |
-| Falling behind | Medium | Must-haves finish in week 4; weeks 5–6 are cuttable |
+| A visitor types a real card on the public site | High | Card number and CVC stay in the browser; only brand + last 4 reach the server; footer disclaimer stays |
+| Looking too much like Stripe | Medium | Similar layout only; no Stripe name, logo or copy |
+| Gemini free-tier rate limits during the demo | Medium | Per-user limit, fast keyword fallback, clear "try again" message |
+| Gemini free tier may use prompts to improve Google's products | Medium | A one-line note by the AI buttons ("Sent to Google Gemini"); demo data only |
+| Model rewrites facts or numbers | Medium | Numbers and placeholders checked in code; rewrite is preview-only |
+| API key exposure | High | Server-only; you add it to `.env.local` and Vercel yourself |
+| More moving parts slow pages | Low | Icons tree-shaken; AI calls only on button press or on reaching the department step |
 
-## Open questions
+## Open questions (my proposal in brackets)
 
-- Spec open questions 1–6 still need group answers. This plan assumes the proposed answers.
-- Is anyone on the team new to TypeScript or Next.js? If so, pair them with A in week 1.
+1. **Saved cards:** [Visa `4242 4242 4242 4242`, "Asha Sharma", 12/30; Mastercard `5555 5555 5555 4444`, "Ravi Kumar", 08/29. Both are the networks' published test numbers and pass validation. One click fills every field, including the CVC.]
+2. **Failure path:** [`4000 0000 0000 0002` is declined with "Your card was declined", so the failure screen can still be demoed. Not one of the saved cards.]
+3. **Disclosure:** [No "mock"/"test" wording on the checkout, as you asked. The site-wide footer stays, and card details never leave the browser.]
+4. **Rewrite language:** [Keep the citizen's language: Hindi stays Hindi.]
+5. **New dependencies:** [`lucide-react`, `@google/genai`, and `@axe-core/playwright` (dev only).]
+6. **Schema changes:** [`payments.card_brand`, `payments.card_last4`, and a new `ai_usage` table.]
+7. **Gemini key:** [You add `GEMINI_API_KEY` to `.env.local` and to Vercel yourself. Please don't paste it into the chat.]
