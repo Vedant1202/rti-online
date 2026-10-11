@@ -178,3 +178,16 @@ export const sentReminders = pgTable(
   },
   (t) => [primaryKey({ columns: [t.requestId, t.kind] })],
 );
+
+export const aiUsage = pgTable(
+  "ai_usage",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    kind: text("kind").notNull(),
+    at: ts("at").notNull().defaultNow(),
+  },
+  (t) => [index("ai_usage_user_idx").on(t.userId, t.at)],
+);
