@@ -21,7 +21,8 @@ export class AiError extends Error {
 }
 
 export type AiModel = {
-  generateJson<T>(opts: { system: string; prompt: string; schema: Record<string, unknown> }): Promise<T>;
+  /** `fast` uses the lighter model, for simple classification. */
+  generateJson<T>(opts: { system: string; prompt: string; schema: Record<string, unknown>; fast?: boolean }): Promise<T>;
 };
 
 // Generous: a long formal rewrite can take a while on the free tier. The UI shows a loader meanwhile.
@@ -59,11 +60,13 @@ export function getAiModel(): AiModel {
   if (override) return override;
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new AiError("disabled");
-  const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const mainModel = process.env.GEMINI_MODEL || "gemini-flash-latest";
+  const fastModel = process.env.GEMINI_FAST_MODEL || "gemini-flash-lite-latest";
   return {
-    async generateJson<T>({ system, prompt, schema }: { system: string; prompt: string; schema: Record<string, unknown> }) {
+    async generateJson<T>({ system, prompt, schema, fast }: { system: string; prompt: string; schema: Record<string, unknown>; fast?: boolean }) {
       const { GoogleGenAI, ThinkingLevel } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey });
+      let model = fast ? fastModel : mainModel;
       const call = (lowThinking: boolean) =>
         ai.models.generateContent({
           model,
@@ -82,6 +85,14 @@ export function getAiModel(): AiModel {
       try {
         response = await withTimeout(
           call(true)
+            .catch((err) => {
+              // The fast model isn't available on this key or region: use the main model.
+              if (fast && statusOf(err) === 404) {
+                model = mainModel;
+                return call(true);
+              }
+              throw err;
+            })
             .catch((err) => {
               // Older models reject thinkingLevel: retry once with the model's default.
               if (statusOf(err) === 400) return call(false);

@@ -39,7 +39,7 @@ export async function recommendAuthority(
   ].join("\n");
 
   return runAi(user, "suggest_authority", now, async (model) => {
-    const r = await model.generateJson<{ authorityId: string; reason: string }>({ system: SYSTEM, prompt, schema });
+    const r = await model.generateJson<{ authorityId: string; reason: string }>({ system: SYSTEM, prompt, schema, fast: true });
     if (!ids.includes(r.authorityId)) return { authorityId: null, reason: null };
     return { authorityId: r.authorityId, reason: (r.reason ?? "").trim().slice(0, 240) || null };
   });
