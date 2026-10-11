@@ -10,6 +10,9 @@ import { suggestAuthorities } from "@/lib/rti/suggest-authority";
 import { detectStateBody } from "@/lib/rti/state-body";
 import { TEMPLATES, unfilledPlaceholders } from "@/lib/rti/templates";
 import { RewritePanel } from "./rewrite-panel";
+import { useRecommendation } from "./use-recommendation";
+import { InfoTip } from "@/components/info-tip";
+import { Sparkles } from "lucide-react";
 
 export type AuthorityOption = { id: string; code: string; name: string; ministry: string; keywords: string[] };
 
@@ -81,6 +84,8 @@ export function FilingWizard({
 
   const suggestions = useMemo(() => suggestAuthorities(`${subject} ${body}`, authorities), [subject, body, authorities]);
   const stateTerm = useMemo(() => detectStateBody(`${subject} ${body}`), [subject, body]);
+  const recommendation = useRecommendation(aiEnabled && step === 1, subject, body);
+  const recommended = authorities.find((a) => a.id === recommendation.result?.authorityId) ?? null;
 
   const stepValid = [
     subject.trim().length > 0 &&
@@ -138,6 +143,36 @@ export function FilingWizard({
       {step === 1 && (
         <section className="card grid gap-4">
           {stateTerm && <StateWarning term={stateTerm} />}
+          {aiEnabled && (recommendation.loading || recommended) && (
+            <div className="grid gap-2" data-testid="ai-recommendation">
+              <p className="label flex items-center gap-1.5">
+                <Sparkles size={16} aria-hidden="true" className="text-accent" /> Recommended by AI
+              </p>
+              {recommendation.loading ? (
+                <div className="flex gap-2" aria-busy="true">
+                  <span className="sr-only" role="status">
+                    Finding the best department…
+                  </span>
+                  <span className="skeleton h-9 w-56" aria-hidden="true" />
+                  <span className="skeleton h-9 w-24" aria-hidden="true" />
+                </div>
+              ) : (
+                recommended && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      className={authorityId === recommended.id ? "btn" : "btn-ghost"}
+                      aria-pressed={authorityId === recommended.id}
+                      onClick={() => setAuthorityId(recommended.id)}
+                    >
+                      <Sparkles size={16} aria-hidden="true" /> {recommended.name}
+                    </button>
+                    {recommendation.result?.reason && <InfoTip label="why this department">{recommendation.result.reason}</InfoTip>}
+                  </div>
+                )
+              )}
+            </div>
+          )}
           {suggestions.length > 0 && (
             <div className="grid gap-2" data-testid="suggestions">
               <p className="label">Suggested from your request</p>
@@ -167,6 +202,7 @@ export function FilingWizard({
             {matches.map((a) => (
               <label
                 key={a.id}
+                data-authority-id={a.id}
                 className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${authorityId === a.id ? "border-accent bg-accent/5" : "border-line"}`}
               >
                 <input
@@ -177,7 +213,14 @@ export function FilingWizard({
                   onChange={() => setAuthorityId(a.id)}
                 />
                 <span className="grid">
-                  <span className="font-semibold">{a.name}</span>
+                  <span className="flex flex-wrap items-center gap-2 font-semibold">
+                    {a.name}
+                    {recommended?.id === a.id && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-accent px-2 py-0.5 text-xs font-semibold text-accent">
+                        <Sparkles size={12} aria-hidden="true" /> Recommended
+                      </span>
+                    )}
+                  </span>
                   <span className="text-xs text-muted">{a.ministry}</span>
                 </span>
               </label>
