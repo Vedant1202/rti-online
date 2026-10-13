@@ -6,7 +6,7 @@ import { prefsScript } from "@/lib/prefs";
 import { Suspense } from "react";
 import { AnnouncerProvider } from "@/components/announcer";
 import { NavProgress } from "@/components/nav-progress";
-import { Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
+import { Noto_Sans, Noto_Sans_Devanagari, Poppins } from "next/font/google";
 import "./globals.css";
 
 // UX4G's base type: Noto Sans, with Noto Sans Devanagari for Hindi.
@@ -14,6 +14,13 @@ const body = Noto_Sans({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "600", "700"],
+});
+
+// Headings: Poppins covers Latin and Devanagari, so Hindi headings match the English ones.
+const display = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin", "devanagari"],
+  weight: ["600", "700"],
 });
 
 const deva = Noto_Sans_Devanagari({
@@ -32,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${body.variable} ${deva.variable} h-full antialiased`}
+      className={`${body.variable} ${deva.variable} ${display.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: prefsScript }} />

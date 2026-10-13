@@ -6,7 +6,7 @@
    or whenever the user picked Dark (data-theme on <html>, set from the rti_theme cookie).
    tests/unit/tokens.test.ts checks every text pair for WCAG AA contrast. */
 :root {
-  --paper: #fafafa;
+  --paper: #f6f4fb;
   --surface: #ffffff;
   --ink: #171717;
   --muted: #525252;
@@ -20,6 +20,28 @@
   --ok: #006600;
   --bar: #1a0e3d;
   --bar-ink: #ffffff;
+  /* v4 "Bright civic": hero gradient, gradient buttons, icon tiles, depth */
+  --grad-1: #2a1475;
+  --grad-2: #4a2bc2;
+  --grad-3: #7c3aed;
+  --glow: #ff9933;
+  --hero-ink: #ffffff;
+  --hero-muted: #f1ecff;
+  --btn-from: #4a2bc2;
+  --btn-to: #6d28d9;
+  --btn-ink: #ffffff;
+  --tile-indigo-bg: #efeaff;
+  --tile-indigo-fg: #4a2bc2;
+  --tile-saffron-bg: #fff1dc;
+  --tile-saffron-fg: #8f5b00;
+  --tile-teal-bg: #dff5f1;
+  --tile-teal-fg: #0f6b5c;
+  --tile-rose-bg: #ffe6ee;
+  --tile-rose-fg: #a3174f;
+  --shadow-sm: 0 1px 2px rgb(30 20 80 / 0.06), 0 2px 8px rgb(30 20 80 / 0.05);
+  --shadow-md: 0 4px 12px rgb(30 20 80 / 0.08), 0 12px 32px rgb(30 20 80 / 0.08);
+  --shadow-lg: 0 12px 28px rgb(30 20 80 / 0.12), 0 30px 60px rgb(30 20 80 / 0.14);
+  --shadow-btn: 0 6px 16px rgb(74 43 194 / 0.28);
   color-scheme: light;
   /* The tricolour strip under the utility bar; same in both themes. */
   --flag-saffron: #ff9933;
@@ -29,7 +51,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0f0e17;
+    --paper: #100d1c;
     --surface: #1a1825;
     --ink: #f5f5f5;
     --muted: #a3a3a3;
@@ -43,12 +65,33 @@
     --ok: #66cc66;
     --bar: #24145c;
     --bar-ink: #ffffff;
+    --grad-1: #1d0f57;
+    --grad-2: #3f24a8;
+    --grad-3: #6d28d9;
+    --glow: #ff9933;
+    --hero-ink: #ffffff;
+    --hero-muted: #f1ecff;
+    --btn-from: #5a3bd6;
+    --btn-to: #7c3aed;
+    --btn-ink: #ffffff;
+    --tile-indigo-bg: #2a2350;
+    --tile-indigo-fg: #b9a8ff;
+    --tile-saffron-bg: #3a2a12;
+    --tile-saffron-fg: #ffbe6f;
+    --tile-teal-bg: #12332e;
+    --tile-teal-fg: #5fd4be;
+    --tile-rose-bg: #3a1626;
+    --tile-rose-fg: #ff8fb3;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.25);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
+    --shadow-lg: 0 12px 28px rgb(0 0 0 / 0.5), 0 30px 60px rgb(0 0 0 / 0.45);
+    --shadow-btn: 0 6px 18px rgb(124 58 237 / 0.35);
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --paper: #0f0e17;
+  --paper: #100d1c;
   --surface: #1a1825;
   --ink: #f5f5f5;
   --muted: #a3a3a3;
@@ -62,6 +105,27 @@
   --ok: #66cc66;
   --bar: #24145c;
   --bar-ink: #ffffff;
+  --grad-1: #1d0f57;
+  --grad-2: #3f24a8;
+  --grad-3: #6d28d9;
+  --glow: #ff9933;
+  --hero-ink: #ffffff;
+  --hero-muted: #f1ecff;
+  --btn-from: #5a3bd6;
+  --btn-to: #7c3aed;
+  --btn-ink: #ffffff;
+  --tile-indigo-bg: #2a2350;
+  --tile-indigo-fg: #b9a8ff;
+  --tile-saffron-bg: #3a2a12;
+  --tile-saffron-fg: #ffbe6f;
+  --tile-teal-bg: #12332e;
+  --tile-teal-fg: #5fd4be;
+  --tile-rose-bg: #3a1626;
+  --tile-rose-fg: #ff8fb3;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.25);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 28px rgb(0 0 0 / 0.5), 0 30px 60px rgb(0 0 0 / 0.45);
+  --shadow-btn: 0 6px 18px rgb(124 58 237 / 0.35);
   color-scheme: dark;
 }
 
@@ -80,7 +144,18 @@
   --color-saffron: var(--saffron);
   --color-bar: var(--bar);
   --color-bar-ink: var(--bar-ink);
+  --color-tile-indigo-bg: var(--tile-indigo-bg);
+  --color-tile-indigo-fg: var(--tile-indigo-fg);
+  --color-tile-saffron-bg: var(--tile-saffron-bg);
+  --color-tile-saffron-fg: var(--tile-saffron-fg);
+  --color-tile-teal-bg: var(--tile-teal-bg);
+  --color-tile-teal-fg: var(--tile-teal-fg);
+  --color-tile-rose-bg: var(--tile-rose-bg);
+  --color-tile-rose-fg: var(--tile-rose-fg);
+  --color-hero-ink: var(--hero-ink);
+  --color-hero-muted: var(--hero-muted);
   --font-sans: var(--font-body), var(--font-deva), system-ui, sans-serif;
+  --font-display: var(--font-poppins), var(--font-body), var(--font-deva), system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -96,6 +171,14 @@ html[data-text="lg"] {
 body {
   background: var(--paper);
   color: var(--ink);
+}
+
+/* Headings and big numbers use Poppins (Latin and Devanagari); body text stays Noto Sans. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-poppins), var(--font-body), var(--font-deva), system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 /* Visible keyboard focus everywhere, in both themes. */
@@ -114,25 +197,48 @@ body {
   }
 }
 
-/* UX4G-style controls: 6px corners on buttons and fields, 8px on cards, 44px tap height on phones. */
+/* Controls: gradient primary buttons, soft layered cards (16px corners), 44px tap height on phones. */
 .btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-ink hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-10;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 md:min-h-10;
+  color: var(--btn-ink);
+  background-color: var(--btn-from);
+  background-image: linear-gradient(135deg, var(--btn-from), var(--btn-to));
+  box-shadow: var(--shadow-btn);
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
 }
 .btn-ghost {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-accent px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/10 disabled:opacity-50 md:min-h-10;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent bg-surface px-5 py-2 text-sm font-semibold text-accent hover:bg-accent/10 disabled:opacity-50 md:min-h-10;
+  transition: background-color 150ms ease;
 }
 .input {
-  @apply w-full rounded-md border border-field bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:outline-2 focus:outline-accent;
+  @apply w-full rounded-xl border border-field bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:outline-2 focus:outline-accent;
 }
 .card {
-  @apply rounded-lg border border-line bg-surface p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)];
+  @apply rounded-2xl border border-line bg-surface p-5;
+  box-shadow: var(--shadow-sm);
+}
+/* Cards that are links lift a little on hover. */
+a.card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+a.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 .label {
   @apply text-sm font-semibold text-ink;
 }
 /* Pill-shaped toggle used for templates and the Popular authorities. */
 .chip {
-  @apply inline-flex min-h-9 items-center gap-1.5 rounded-full border border-field px-3 py-1 text-sm text-ink hover:border-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-accent-ink;
+  @apply inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink hover:border-accent aria-pressed:border-transparent aria-pressed:text-accent-ink;
+  box-shadow: var(--shadow-sm);
+}
+.chip[aria-pressed="true"] {
+  background-color: var(--accent);
 }
 
 /* Loaders */

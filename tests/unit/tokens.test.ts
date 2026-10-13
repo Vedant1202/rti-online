@@ -55,6 +55,17 @@ describe("UX4G design tokens", () => {
         ["saffron", "surface"],
         ["saffron", "paper"],
         ["bar-ink", "bar"],
+        // v4: icon tiles, the hero gradient and gradient buttons
+        ["tile-indigo-fg", "tile-indigo-bg"],
+        ["tile-saffron-fg", "tile-saffron-bg"],
+        ["tile-teal-fg", "tile-teal-bg"],
+        ["tile-rose-fg", "tile-rose-bg"],
+        ["hero-ink", "grad-1"],
+        ["hero-ink", "grad-2"],
+        ["hero-ink", "grad-3"],
+        ["hero-muted", "grad-3"],
+        ["btn-ink", "btn-from"],
+        ["btn-ink", "btn-to"],
       ])("%s on %s meets WCAG AA for text (4.5:1)", (fg, bg) => {
         expect(t[fg], `--${fg}`).toBeDefined();
         expect(t[bg], `--${bg}`).toBeDefined();
