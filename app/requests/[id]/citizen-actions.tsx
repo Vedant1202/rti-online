@@ -68,7 +68,7 @@ export function CitizenActions({ view, action, t }: { view: CaseView; action: Ne
   if (window.state === "not_yet") {
     return window.opensAt ? (
       <p className="text-sm text-muted" data-testid="appeal-opens">
-        {fmt(t.citizen.appealOpens, { date: formatDate(window.opensAt) })}
+        {fmt(t.citizen.appealOpens, { date: formatDate(window.opensAt, t.meta.locale) })}
       </p>
     ) : null;
   }
@@ -81,7 +81,7 @@ export function CitizenActions({ view, action, t }: { view: CaseView; action: Ne
       )}
       <HelpTip topic="firstAppeal" />
       <span className="text-sm text-muted">
-        {window.state === "open" ? fmt(t.citizen.openUntil, { date: formatDate(window.closesAt) }) : t.citizen.windowPassed}
+        {window.state === "open" ? fmt(t.citizen.openUntil, { date: formatDate(window.closesAt, t.meta.locale) }) : t.citizen.windowPassed}
       </span>
     </div>
   );

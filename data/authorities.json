@@ -53,7 +53,8 @@
       "टिकट"
     ],
     "popular": true,
-    "short": "Railways"
+    "short": "Railways",
+    "shortHi": "रेलवे"
   },
   {
     "code": "MHOME",
@@ -91,7 +92,8 @@
       "भविष्य निधि"
     ],
     "popular": true,
-    "short": "EPFO"
+    "short": "EPFO",
+    "shortHi": "ईपीएफ़ओ (EPFO)"
   },
   {
     "code": "ESICO",
@@ -122,7 +124,8 @@
       "पासपोर्ट"
     ],
     "popular": true,
-    "short": "Passport"
+    "short": "Passport",
+    "shortHi": "पासपोर्ट"
   },
   {
     "code": "CBDTX",
@@ -140,7 +143,8 @@
       "आयकर"
     ],
     "popular": true,
-    "short": "Income Tax"
+    "short": "Income Tax",
+    "shortHi": "आयकर"
   },
   {
     "code": "CBICX",
@@ -187,7 +191,8 @@
       "आधार"
     ],
     "popular": true,
-    "short": "Aadhaar (UIDAI)"
+    "short": "Aadhaar (UIDAI)",
+    "shortHi": "आधार (UIDAI)"
   },
   {
     "code": "DOPOS",
@@ -205,7 +210,8 @@
       "स्पीड पोस्ट"
     ],
     "popular": true,
-    "short": "India Post"
+    "short": "India Post",
+    "shortHi": "इंडिया पोस्ट"
   },
   {
     "code": "DOTEL",

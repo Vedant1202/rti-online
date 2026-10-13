@@ -50,7 +50,7 @@ export default async function AppealPage(props: PageProps<"/appeals/[id]">) {
           {clock.state === "running" && (
             <p className="text-sm">
               {split(a.dueBy, "date")[0]}
-              <strong>{formatDate(clock.dueAt)}</strong>
+              <strong>{formatDate(clock.dueAt, t.meta.locale)}</strong>
               {fmt(split(a.dueBy, "date")[1], {
                 days: plural(clock.daysLeft, t.clock.dayOne, t.clock.dayMany),
               })}
@@ -59,16 +59,16 @@ export default async function AppealPage(props: PageProps<"/appeals/[id]">) {
           )}
           {clock.state === "overdue" && (
             <p className="text-sm text-danger">
-              {fmt(a.overdue, { date: formatDate(clock.dueAt) })}
+              {fmt(a.overdue, { date: formatDate(clock.dueAt, t.meta.locale) })}
             </p>
           )}
           {clock.state === "met" && (
-            <p className="text-sm">{fmt(a.decided, { date: formatDate(clock.decidedAt) })}</p>
+            <p className="text-sm">{fmt(a.decided, { date: formatDate(clock.decidedAt, t.meta.locale) })}</p>
           )}
           {view.secondAppealBy && (clock.state === "met" || clock.state === "overdue") && (
             <p className="text-sm">
               <HelpTip topic="secondAppeal" /> {split(a.secondAppeal, "date")[0]}
-              <strong>{formatDate(view.secondAppealBy)}</strong>
+              <strong>{formatDate(view.secondAppealBy, t.meta.locale)}</strong>
               {split(split(a.secondAppeal, "date")[1], "portal")[0]}
               <a
                 className="text-accent underline"

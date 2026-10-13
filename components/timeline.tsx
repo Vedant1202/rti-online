@@ -147,7 +147,7 @@ export function Timeline({ events, documents, t = en }: { events: Event[]; docum
             <div className="grid gap-1 pb-5">
               <p className="font-semibold">{d.title}</p>
               <p className="text-xs text-muted">
-                {formatDateTime(e.at)}
+                {formatDateTime(e.at, t.meta.locale)}
                 {e.actorName && e.actorRole !== "citizen" ? ` · ${e.actorName}` : ""}
               </p>
               {d.detail && <p className="whitespace-pre-wrap text-sm">{d.detail}</p>}

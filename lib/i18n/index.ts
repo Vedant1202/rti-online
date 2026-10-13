@@ -1,10 +1,10 @@
 import type { Lang } from "@/lib/prefs";
 import { en, type Dict } from "./en";
+import { hi } from "./hi";
 
 export type { Dict };
 
-// T15 swaps in the Hindi dictionary.
-const DICTS: Record<Lang, Dict> = { en, hi: en };
+const DICTS: Record<Lang, Dict> = { en, hi };
 
 export function dictFor(lang: Lang): Dict {
   return DICTS[lang];

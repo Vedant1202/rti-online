@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { as } from "./helpers";
+import { as, BASE_URL } from "./helpers";
 
 const rootFontSize = (page: import("@playwright/test").Page) =>
   page.evaluate(() => getComputedStyle(document.documentElement).fontSize);
@@ -25,7 +25,7 @@ test("A+ makes text larger and the choice survives a reload", async ({ page }) =
 test("at 125% text and 375px, key pages have no horizontal scroll", async ({ browser }, info) => {
   test.skip(info.project.name !== "mobile", "mobile only");
   const page = await as(browser, `big-text-${Date.now()}@example.com`, { width: 375, height: 812 });
-  await page.context().addCookies([{ name: "rti_text", value: "lg", url: new URL(page.url()).origin }]);
+  await page.context().addCookies([{ name: "rti_text", value: "lg", url: BASE_URL }]);
   for (const path of ["/", "/requests", "/requests/new", "/stats", "/help"]) {
     await page.goto(path);
     expect(await rootFontSize(page)).toBe("20px");

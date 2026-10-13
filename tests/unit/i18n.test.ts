@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { dictFor, fmt, plural } from "@/lib/i18n";
 import { en } from "@/lib/i18n/en";
+import { hi } from "@/lib/i18n/hi";
 
 function leaves(obj: object, path = ""): [string, unknown][] {
   return Object.entries(obj).flatMap(([k, v]) =>
@@ -19,6 +20,38 @@ describe("dictionaries", () => {
       expect(typeof value, key).toBe("string");
       expect((value as string).trim(), key).not.toBe("");
     }
+  });
+});
+
+describe("Hindi dictionary", () => {
+  const enLeaves = Object.fromEntries(leaves(en));
+  const hiLeaves = Object.fromEntries(leaves(hi));
+  // Names, codes and symbols that read the same in both languages.
+  const SAME = new Set(["nav.brand", "card.cvcPlaceholder", "bar.english", "bar.hindi", "nav.roles.cpio", "help.topics.cpio.title"]);
+
+  it("is what dictFor serves for hi", () => {
+    expect(dictFor("hi")).toBe(hi);
+  });
+
+  it("has every English key, each with Hindi text", () => {
+    expect(Object.keys(hiLeaves).sort()).toEqual(Object.keys(enLeaves).sort());
+    for (const [key, value] of Object.entries(hiLeaves)) {
+      expect((value as string).trim(), key).not.toBe("");
+      if (!SAME.has(key)) expect(value, `${key} looks untranslated`).not.toBe(enLeaves[key]);
+    }
+  });
+
+  it("keeps every {placeholder} the English text has", () => {
+    for (const [key, value] of Object.entries(enLeaves)) {
+      const names = [...(value as string).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+      const hiNames = [...(hiLeaves[key] as string).matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+      expect(hiNames, key).toEqual(names);
+    }
+  });
+
+  it("uses the Indian Hindi locale for dates", () => {
+    expect(hi.meta.locale).toBe("hi-IN");
+    expect(en.meta.locale).toBe("en-IN");
   });
 });
 

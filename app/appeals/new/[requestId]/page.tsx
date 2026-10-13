@@ -28,7 +28,7 @@ export default async function NewAppealPage(props: PageProps<"/appeals/new/[requ
       <div className="card grid max-w-xl gap-3">
         <h1 className="text-xl font-bold">{a.cantYet}</h1>
         <p className="text-sm">
-          {window?.opensAt ? fmt(a.opensOn, { date: formatDate(window.opensAt) }) : a.opensLater}
+          {window?.opensAt ? fmt(a.opensOn, { date: formatDate(window.opensAt, t.meta.locale) }) : a.opensLater}
         </p>
         <Link href={`/requests/${requestId}`} className="text-accent">
           {a.backToRequest}
@@ -40,7 +40,7 @@ export default async function NewAppealPage(props: PageProps<"/appeals/new/[requ
   const ground = await suggestedGround(user, requestId, now);
   const defaultBody =
     ground === "No response within the time limit"
-      ? fmt(a.defaultNoResponse, { regNo: req.regNo ?? "", date: formatDate(req.filedAt!) })
+      ? fmt(a.defaultNoResponse, { regNo: req.regNo ?? "", date: formatDate(req.filedAt!, t.meta.locale) })
       : fmt(a.defaultOther, { regNo: req.regNo ?? "" });
   const [againstBefore, againstAfter] = fmt(a.against, { subject: req.subject }).split("{regNo}");
 
@@ -54,7 +54,7 @@ export default async function NewAppealPage(props: PageProps<"/appeals/new/[requ
           {againstAfter}
         </p>
         {window.state === "open" && (
-          <p className="text-sm">{fmt(a.appealBy, { date: formatDate(window.closesAt) })}</p>
+          <p className="text-sm">{fmt(a.appealBy, { date: formatDate(window.closesAt, t.meta.locale) })}</p>
         )}
       </div>
       <LangProvider lang={lang}>

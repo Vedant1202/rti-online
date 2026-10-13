@@ -31,7 +31,7 @@ export function describeAction(a: NextAction, t: Dict) {
       return {
         Icon: MailOpen,
         title: t.actions.readReplyTitle,
-        text: fmt(t.actions.readReplyText, { date: formatDate(a.appealBy) }),
+        text: fmt(t.actions.readReplyText, { date: formatDate(a.appealBy, t.meta.locale) }),
         links: [
           { href: a.href, label: t.actions.readReply },
           { href: a.appealHref, label: t.actions.appeal, ghost: true },
@@ -41,7 +41,7 @@ export function describeAction(a: NextAction, t: Dict) {
       return {
         Icon: a.late ? AlertTriangle : Scale,
         title: t.actions.noReplyTitle,
-        text: a.late ? t.actions.noReplyLateText : fmt(t.actions.noReplyText, { date: formatDate(a.appealBy) }),
+        text: a.late ? t.actions.noReplyLateText : fmt(t.actions.noReplyText, { date: formatDate(a.appealBy, t.meta.locale) }),
         links: [{ href: a.appealHref, label: t.actions.fileAppeal }],
       };
   }

@@ -5,7 +5,7 @@ import { authorities } from "@/lib/db/schema";
 import { loadDraft } from "@/lib/services/drafts";
 import { aiEnabled } from "@/lib/ai/gemini";
 import { FilingWizard, type Draft } from "./filing-wizard";
-import { POPULAR } from "@/lib/authorities";
+import { popularFor } from "@/lib/authorities";
 import { getDict } from "@/lib/i18n/server";
 import { LangProvider } from "@/lib/i18n/client";
 
@@ -23,7 +23,7 @@ export default async function NewRequestPage() {
     <div className="grid gap-6">
       <h1 className="text-2xl font-bold">{t.filing.title}</h1>
       <LangProvider lang={lang}>
-        <FilingWizard authorities={list} popular={POPULAR} draft={(draft?.payload as Draft) ?? null} aiEnabled={aiEnabled()} />
+        <FilingWizard authorities={list} popular={popularFor(lang)} draft={(draft?.payload as Draft) ?? null} aiEnabled={aiEnabled()} />
       </LangProvider>
     </div>
   );

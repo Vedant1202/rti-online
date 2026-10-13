@@ -4,6 +4,9 @@
  * with fmt(). Officer pages, emails and API errors stay in English and don't use this file.
  */
 export const en = {
+  meta: {
+    locale: "en-IN",
+  },
   a11y: {
     skip: "Skip to content",
     loading: "Loading…",
@@ -21,6 +24,9 @@ export const en = {
     themeLight: "Light",
     themeDark: "Dark",
     themeLabel: "Theme: {current}. Switch to {next}.",
+    language: "Language",
+    english: "English",
+    hindi: "हिन्दी",
   },
   nav: {
     main: "Main",

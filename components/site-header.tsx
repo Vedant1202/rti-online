@@ -44,8 +44,9 @@ export async function SiteHeader() {
   const jar = await cookies();
   const theme = parseTheme(jar.get(THEME_COOKIE)?.value);
   const textSize = parseTextSize(jar.get(TEXT_COOKIE)?.value);
-  const { lang, t } = await getDict();
   const officer = user && user.role !== "citizen";
+  // Officer pages stay in English (SPEC v3); citizens and visitors get their chosen language.
+  const { lang, t } = officer ? { lang: "en" as const, t: en } : await getDict();
   return (
     <LangProvider lang={lang}>
       <SkipLink t={t} />

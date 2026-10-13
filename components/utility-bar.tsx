@@ -3,10 +3,11 @@ import type { Theme } from "@/lib/theme";
 import type { TextSize } from "@/lib/prefs";
 import { ThemeToggle } from "./theme-toggle";
 import { TextSizeControl } from "./text-size";
+import { LangSwitch } from "./lang-switch";
 
 /**
  * UX4G-style top strip. Where UX4G says "Government of India", we say the site is unofficial
- * (SPEC: never brand as government). Holds the reading controls; T15 adds the language switch.
+ * (SPEC: never brand as government). Holds the language, text-size and theme controls.
  */
 export function UtilityBar({ t, theme, textSize }: { t: Dict; theme: Theme; textSize: TextSize }) {
   return (
@@ -17,7 +18,8 @@ export function UtilityBar({ t, theme, textSize }: { t: Dict; theme: Theme; text
             <span className="sm:hidden">{t.bar.noticeShort}</span>
             <span className="hidden sm:inline">{t.bar.notice}</span>
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <LangSwitch />
             <TextSizeControl initial={textSize} />
             <ThemeToggle initial={theme} />
           </div>

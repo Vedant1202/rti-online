@@ -41,7 +41,7 @@ export default async function MyRequestsPage() {
                     {r.regNo ? (
                       <span className="font-mono">{r.regNo}</span>
                     ) : (
-                      fmt(t.myRequests.started, { date: formatDate(r.createdAt) })
+                      fmt(t.myRequests.started, { date: formatDate(r.createdAt, t.meta.locale) })
                     )}
                   </span>
                 </span>

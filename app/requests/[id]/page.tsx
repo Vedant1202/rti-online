@@ -167,7 +167,7 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
               </a>
             ))}
           <p className="text-xs text-muted">
-            {fmt(t.case.started, { date: formatDate(root.createdAt) })}
+            {fmt(t.case.started, { date: formatDate(root.createdAt, t.meta.locale) })}
           </p>
         </section>
 

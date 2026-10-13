@@ -131,7 +131,7 @@ export function FilingWizard({
     <div className="grid gap-6">
       <p className="text-xs text-muted" aria-live="polite" data-testid="draft-status">
         {savedAt
-          ? fmt(t.filing.draftSaved, { time: savedAt.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }) })
+          ? fmt(t.filing.draftSaved, { time: savedAt.toLocaleTimeString(t.meta.locale, { hour: "numeric", minute: "2-digit" }) })
           : draft
             ? t.filing.draftRestored
             : t.filing.draftAuto}

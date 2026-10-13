@@ -1,5 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 
+/** Same default as playwright.config.ts; use it for cookies (a reused session's page starts blank). */
+export const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
+
 /** Tests never call the real Gemini: AI routes answer "switched off" unless a test stubs them. */
 export async function stubAiOff(page: Page) {
   await page.route("**/api/ai/**", (route) =>

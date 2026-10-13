@@ -17,7 +17,7 @@ export function ClockBadge({ clock, t = en }: { clock: ReplyClock | null; t?: Di
     case "overdue":
       return <Pill tone="danger">{fmt(t.clock.overdue, { days: days(Math.max(clock.daysOver, 0) || 1, t) })}</Pill>;
     case "met":
-      return <Pill tone="ok">{fmt(t.clock.answered, { date: formatDate(clock.repliedAt) })}</Pill>;
+      return <Pill tone="ok">{fmt(t.clock.answered, { date: formatDate(clock.repliedAt, t.meta.locale) })}</Pill>;
   }
 }
 
@@ -43,10 +43,10 @@ function DaysLeftBar({ left, total, paused, label, valueText }: { left: number; 
 export function ClockSummary({ clock, totalDays, t = en }: { clock: ReplyClock | null; totalDays?: number; t?: Dict }) {
   if (!clock) return null;
   const text = {
-    running: clock.state === "running" && fmt(t.clock.running, { date: formatDate(clock.dueAt), days: days(clock.daysLeft, t) }),
+    running: clock.state === "running" && fmt(t.clock.running, { date: formatDate(clock.dueAt, t.meta.locale), days: days(clock.daysLeft, t) }),
     paused: clock.state === "paused" && fmt(t.clock.pausedSummary, { days: days(clock.daysLeftWhenPaused, t) }),
-    overdue: clock.state === "overdue" && fmt(t.clock.overdueSummary, { date: formatDate(clock.dueAt) }),
-    met: clock.state === "met" && fmt(t.clock.met, { date: formatDate(clock.repliedAt) }),
+    overdue: clock.state === "overdue" && fmt(t.clock.overdueSummary, { date: formatDate(clock.dueAt, t.meta.locale) }),
+    met: clock.state === "met" && fmt(t.clock.met, { date: formatDate(clock.repliedAt, t.meta.locale) }),
   }[clock.state];
   const left = clock.state === "running" ? clock.daysLeft : clock.state === "paused" ? clock.daysLeftWhenPaused : null;
   return (
