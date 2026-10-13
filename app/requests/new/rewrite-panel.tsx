@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Sparkles, Undo2, X } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useAnnounce } from "@/components/announcer";
+import { useT } from "@/lib/i18n/client";
 
 /**
  * "Rewrite formally" for the request text. Never replaces the text without the applicant choosing
@@ -19,6 +20,8 @@ export function RewritePanel({
   onBusyChange: (busy: boolean) => void;
 }) {
   const announce = useAnnounce();
+  const { t } = useT();
+  const r = t.rewrite;
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [previous, setPrevious] = useState<string | null>(null);
@@ -29,11 +32,11 @@ export function RewritePanel({
     onBusyChange(true);
     setError(null);
     setPreview(null);
-    announce("Rewriting your request formally…");
+    announce(r.announceStart);
     try {
       const res = await api<{ rewritten: string }>("/api/ai/rewrite", { body: { text } });
       setPreview(res.rewritten);
-      announce("Formal rewrite ready. Review it below.");
+      announce(r.announceReady);
     } catch (err) {
       setError((err as Error).message);
       announce((err as Error).message);
@@ -48,7 +51,7 @@ export function RewritePanel({
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-ghost" onClick={rewrite} aria-busy={busy} disabled={busy || text.trim().length < 10}>
           {!busy && <Sparkles size={16} aria-hidden="true" />}
-          {busy ? "Rewriting…" : "Rewrite formally"}
+          {busy ? r.busy : r.button}
         </button>
         {previous !== null && !preview && (
           <button
@@ -57,13 +60,13 @@ export function RewritePanel({
             onClick={() => {
               onReplace(previous);
               setPrevious(null);
-              announce("Restored your original text.");
+              announce(r.restored);
             }}
           >
-            <Undo2 size={14} aria-hidden="true" /> Undo rewrite
+            <Undo2 size={14} aria-hidden="true" /> {r.undo}
           </button>
         )}
-        <span className="text-xs text-muted">Uses Google Gemini. Your text is sent to Google.</span>
+        <span className="text-xs text-muted">{r.note}</span>
       </div>
 
       {error && (
@@ -73,9 +76,9 @@ export function RewritePanel({
       )}
 
       {preview && (
-        <section className="grid gap-3 rounded-lg border border-accent bg-accent/5 p-3" aria-label="Formal rewrite preview">
+        <section className="grid gap-3 rounded-lg border border-accent bg-accent/5 p-3" aria-label={r.previewLabel}>
           <p className="flex items-center gap-1.5 text-sm font-semibold text-accent">
-            <Sparkles size={14} aria-hidden="true" /> Suggested formal version
+            <Sparkles size={14} aria-hidden="true" /> {r.suggested}
           </p>
           <p className="whitespace-pre-wrap text-sm" data-testid="rewrite-preview">
             {preview}
@@ -88,13 +91,13 @@ export function RewritePanel({
                 setPrevious(text);
                 onReplace(preview);
                 setPreview(null);
-                announce("Rewrite applied. You can undo it.");
+                announce(r.applied);
               }}
             >
-              <Check size={16} aria-hidden="true" /> Use rewrite
+              <Check size={16} aria-hidden="true" /> {r.use}
             </button>
             <button type="button" className="btn-ghost" onClick={() => setPreview(null)}>
-              <X size={16} aria-hidden="true" /> Keep mine
+              <X size={16} aria-hidden="true" /> {r.keep}
             </button>
           </div>
         </section>

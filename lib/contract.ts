@@ -71,6 +71,14 @@ export const APPEAL_GROUNDS = [
   "Any other ground",
 ] as const;
 export type AppealGround = (typeof APPEAL_GROUNDS)[number];
+/** Dictionary keys for showing each ground in the visitor's language (the stored value stays English). */
+export const APPEAL_GROUND_KEY = {
+  "Refused access to information requested": "refused",
+  "No response within the time limit": "noResponse",
+  "Unreasonable amount of fee required to pay": "fee",
+  "Provided incomplete, misleading or false information": "incomplete",
+  "Any other ground": "other",
+} as const satisfies Record<AppealGround, string>;
 
 export const MAX_REQUEST_CHARS = 20_000;
 export const SOFT_WORD_LIMIT = 500;

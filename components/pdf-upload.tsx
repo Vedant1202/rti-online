@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { FileText, Paperclip } from "lucide-react";
 import type { DocumentKind } from "@/lib/contract";
 import { uploadPdf, type Uploaded } from "@/lib/upload-client";
+import { useT } from "@/lib/i18n/client";
 
 export function PdfUpload({
   label,
@@ -19,13 +20,14 @@ export function PdfUpload({
   required?: boolean;
 }) {
   const id = useId();
+  const { t } = useT();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   return (
     <div className="grid gap-1">
       <label htmlFor={id} className="label">
-        {label} {!required && <span className="font-normal text-muted">(optional)</span>}
+        {label} {!required && <span className="font-normal text-muted">{t.upload.optional}</span>}
       </label>
       {value ? (
         <div className="flex items-center justify-between gap-2 rounded-md border border-line px-3 py-2 text-sm">
@@ -34,7 +36,7 @@ export function PdfUpload({
             <span className="truncate">{value.filename}</span>
           </span>
           <button type="button" className="text-accent" onClick={() => onChange(null)}>
-            Remove
+            {t.upload.remove}
           </button>
         </div>
       ) : (
@@ -49,7 +51,7 @@ export function PdfUpload({
             if (!file) return;
             setError(null);
             if (file.size > 1_000_000) {
-              setError("The file is over 1 MB. Upload a smaller PDF.");
+              setError(t.upload.tooBig);
               return;
             }
             setBusy(true);
@@ -65,7 +67,7 @@ export function PdfUpload({
       )}
       <span className="flex items-center gap-1 text-xs text-muted">
         <Paperclip size={12} aria-hidden="true" />
-        {busy ? "Uploading…" : "PDF only, up to 1 MB."}
+        {busy ? t.upload.uploading : t.upload.hint}
       </span>
       {error && (
         <span role="alert" className="text-sm text-danger">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAnnounce } from "@/components/announcer";
 import { countWords } from "@/lib/rti/wordcount";
+import { useT } from "@/lib/i18n/client";
 
 export type Recommendation = { authorityId: string | null; reason: string | null };
 type State = { loading: boolean; result: Recommendation | null; failed: boolean };
@@ -14,6 +15,7 @@ export const IDLE_MS = 1500;
 /** Asks Gemini for a recommended department once per version of the text, after the citizen stops typing. */
 export function useRecommendation(enabled: boolean, subject: string, body: string) {
   const announce = useAnnounce();
+  const messages = useT().t.picker; // the same object for as long as the language stays the same
   const [state, setState] = useState<State>({ loading: false, result: null, failed: false });
   const requested = useRef<string | null>(null);
   const key = `${subject}\u0000${body}`;
@@ -25,7 +27,7 @@ export function useRecommendation(enabled: boolean, subject: string, body: strin
     const timer = setTimeout(() => {
       requested.current = key;
       setState((s) => ({ ...s, loading: true, failed: false }));
-      announce("Finding the best department for your request…");
+      announce(messages.announceFinding);
       fetch("/api/ai/suggest-authority", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -36,7 +38,7 @@ export function useRecommendation(enabled: boolean, subject: string, body: strin
           if (!res.ok) throw new Error("unavailable");
           const result = (await res.json()) as Recommendation;
           setState({ loading: false, result, failed: false });
-          announce(result.authorityId ? "A recommended department is shown." : "No department recommendation. Choose from the list.");
+          announce(result.authorityId ? messages.announceFound : messages.announceNone);
         })
         .catch((err) => {
           if ((err as Error).name === "AbortError") {
@@ -50,7 +52,7 @@ export function useRecommendation(enabled: boolean, subject: string, body: strin
       clearTimeout(timer);
       controller.abort();
     };
-  }, [ready, key, subject, body, announce]);
+  }, [ready, key, subject, body, announce, messages]);
 
   return state;
 }
