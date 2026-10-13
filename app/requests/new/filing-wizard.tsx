@@ -17,6 +17,15 @@ import { RTI_FEE_PAISE } from "@/lib/contract";
 import { formatRupees } from "@/lib/rti/fees";
 import { fmt } from "@/lib/i18n";
 import { useT } from "@/lib/i18n/client";
+import { FileSearch, FileText, Gavel, Landmark, MessageSquareWarning, type LucideIcon } from "lucide-react";
+
+const TEMPLATE_ICON: Record<string, LucideIcon> = {
+  "pension-status": Landmark,
+  "answer-sheet": FileText,
+  "file-notings": FileSearch,
+  tender: Gavel,
+  grievance: MessageSquareWarning,
+};
 
 export type { AuthorityOption };
 
@@ -136,14 +145,15 @@ export function FilingWizard({
             ? t.filing.draftRestored
             : t.filing.draftAuto}
       </p>
-      <ol className="flex flex-wrap gap-2 text-sm" aria-label={t.filing.steps}>
+      <ol className="grid grid-cols-2 gap-3 text-sm" aria-label={t.filing.steps}>
         {steps.map((label, i) => (
-          <li
-            key={label}
-            aria-current={i === step ? "step" : undefined}
-            className={`rounded-full border px-3 py-1 ${i === step ? "border-accent font-semibold text-accent" : "border-line text-muted"}`}
-          >
-            {i + 1}. {label}
+          <li key={label} aria-current={i === step ? "step" : undefined} className="grid gap-2">
+            <span aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-line">
+              {i <= step && <span className="bg-brand block h-full origin-left rounded-full" style={{ animation: "grow-x 400ms ease-out both" }} />}
+            </span>
+            <span className={i === step ? "font-semibold text-accent" : i < step ? "text-ink" : "text-muted"}>
+              {i + 1}. {label}
+            </span>
           </li>
         ))}
       </ol>
@@ -154,19 +164,23 @@ export function FilingWizard({
             <div className="grid gap-2">
               <p className="label">{t.filing.templates}</p>
               <div className="flex flex-wrap gap-2">
-                {TEMPLATES.map((tpl) => (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    className="chip"
-                    onClick={() => {
-                      setSubject(tpl.subject);
-                      setBody(tpl.body);
-                    }}
-                  >
-                    {tpl.title}
-                  </button>
-                ))}
+                {TEMPLATES.map((tpl) => {
+                  const Icon = TEMPLATE_ICON[tpl.id] ?? FileText;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      className="chip"
+                      onClick={() => {
+                        setSubject(tpl.subject);
+                        setBody(tpl.body);
+                      }}
+                    >
+                      <Icon size={15} aria-hidden="true" className="text-accent" />
+                      {tpl.title}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="grid gap-1">

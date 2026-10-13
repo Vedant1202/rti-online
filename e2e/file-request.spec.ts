@@ -5,10 +5,13 @@ test("from the home page, filing and paying with a saved card takes 6 clicks", a
   const page = await as(browser, `six-${Date.now()}@example.com`, info.project.name === "mobile" ? { width: 375, height: 812 } : undefined);
   await page.goto("/");
   await page.locator("main").getByRole("link", { name: "File a request" }).click(); // 1
+  const step = page.getByRole("list", { name: "Steps" }).locator("[aria-current=step]");
+  await expect(step).toContainText("Write");
   await page.getByLabel("Subject").fill("Lift tender");
   await page.getByLabel("What information do you want?").fill("Copies of the tender documents for the lift at platform 3, Pune station.");
   await page.getByRole("group", { name: "Popular" }).getByRole("button", { name: "Railways" }).click(); // 2
   await page.getByRole("button", { name: "Continue" }).click(); // 3
+  await expect(step).toContainText("Review and pay");
   await page.getByRole("button", { name: "Pay ₹10 and file" }).click(); // 4
   await page.getByRole("button", { name: /Visa ending in 4242/ }).click(); // 5
   await page.getByRole("button", { name: "Pay ₹10" }).click(); // 6

@@ -1,7 +1,17 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import { CheckCircle2, ChevronDown, Search, Sparkles } from "lucide-react";
+import { BookUser, CheckCircle2, ChevronDown, Fingerprint, IndianRupee, Mail, PiggyBank, Search, Sparkles, TrainFront, type LucideIcon } from "lucide-react";
+
+/** An icon and colour for each Popular authority. */
+const POPULAR_LOOK: Record<string, { icon: LucideIcon; tone: string }> = {
+  MORLY: { icon: TrainFront, tone: "bg-tile-indigo-bg text-tile-indigo-fg" },
+  EPFOE: { icon: PiggyBank, tone: "bg-tile-teal-bg text-tile-teal-fg" },
+  MEAPV: { icon: BookUser, tone: "bg-tile-rose-bg text-tile-rose-fg" },
+  CBDTX: { icon: IndianRupee, tone: "bg-tile-saffron-bg text-tile-saffron-fg" },
+  UIDAI: { icon: Fingerprint, tone: "bg-tile-indigo-bg text-tile-indigo-fg" },
+  DOPOS: { icon: Mail, tone: "bg-tile-saffron-bg text-tile-saffron-fg" },
+};
 import { InfoTip } from "./info-tip";
 import { HelpTip } from "./help-tip";
 import { fmt } from "@/lib/i18n";
@@ -96,12 +106,24 @@ export function AuthorityPicker({ authorities, popular, value, onChange, suggest
           {t.picker.popular}
         </p>
         <div role="group" aria-labelledby={`${listId}-popular`} className="flex flex-wrap gap-2">
-          {popularOptions.map((a) => chip(a, a.label))}
+          {popularOptions.map((a) => {
+            const look = POPULAR_LOOK[a.code];
+            const Icon = look?.icon;
+            return chip(
+              a,
+              a.label,
+              Icon && (
+                <span aria-hidden="true" className={`-ml-1.5 grid size-6 place-items-center rounded-full ${look.tone}`}>
+                  <Icon size={14} />
+                </span>
+              ),
+            );
+          })}
         </div>
       </div>
 
       {selected && (
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-accent/5 px-3 py-2 text-sm" data-testid="selected-authority" aria-live="polite">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-accent/30 bg-tile-indigo-bg px-4 py-3 text-sm" data-testid="selected-authority" aria-live="polite">
           <CheckCircle2 size={16} aria-hidden="true" className="text-accent" />
           <span className="text-muted">{t.picker.selected}</span>
           <strong>{selected.name}</strong>
@@ -146,7 +168,7 @@ export function AuthorityPicker({ authorities, popular, value, onChange, suggest
                     <label
                       key={a.id}
                       data-authority-id={a.id}
-                      className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${value === a.id ? "border-accent bg-accent/5" : "border-line"}`}
+                      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${value === a.id ? "border-accent bg-tile-indigo-bg" : "border-line hover:border-accent/50"}`}
                     >
                       <input type="radio" name="authority" className="mt-1" checked={value === a.id} onChange={() => onChange(a.id)} />
                       <span className="grid">
