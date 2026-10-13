@@ -7,21 +7,28 @@ portal's own FAQ and user manual.
 
 Student project. Not affiliated with DoPT or the Government of India. Use fake data only.
 
-See [SPEC.md](SPEC.md) for the specification and [tasks/plan.md](tasks/plan.md) for the build plan.
+See [SPEC.md](SPEC.md) for the specification, [tasks/plan.md](tasks/plan.md) for the build plan, and
+[docs/redesign](docs/redesign/README.md) for before/after screenshots of the redesign.
 
 ## What it does
 
-- **Citizens** sign in with an emailed code, file a request in any language (with templates and
-  autosaved drafts), get a warning before paying if the request is about a state body, pay ₹10
-  through a mock gateway, and get a registration number at once. One case page shows every step,
-  including transfers and split parts, with the reply deadline and when an appeal opens.
+- **Citizens** sign in with an emailed code and land on a home page that lists what needs doing (a fee,
+  a document, a reply, an appeal). Filing takes two steps: write the request in any language (templates,
+  autosaved drafts) and pick the authority, then review and pay ₹10. A warning shows before paying if the
+  request is about a state body. The registration number comes at once. One case page shows every step,
+  including transfers and split parts, with a progress bar, the days left and the next step pinned on screen.
 - **Nodal officers** forward each request to a CPIO, split it across several CPIOs, or transfer it
   to another authority within 5 days (RTI Act s.6(3)).
 - **CPIOs** reply, reject with reasons, ask for an itemised additional fee (the reply clock pauses,
   s.7(3)), ask for documents, and decide life-or-liberty claims (48-hour limit).
 - **Appellate authorities** decide first appeals within 30 days, or 45 with a recorded reason
   (s.19(6)). Citizens can download a case bundle for a second appeal to the CIC.
-- **Everyone** can see public reply-time stats per ministry, and switch between System, Light and Dark themes from the header.
+- **Everyone** can see public reply-time stats per ministry, and choose English or हिन्दी, text size
+  (A− / A / A+) and System, Light or Dark theme from the top bar. Officer pages stay in English.
+- **Authorities:** 25 central public authorities across 17 ministries, six one-click Popular chips, and a
+  searchable list grouped by ministry (searches topics in English and Hindi).
+- **Design:** colours, type and controls follow UX4G 3.0, the Government of India's design system, without
+  any official branding. On phones the header is one row and citizens get a bottom tab bar.
 - **Card checkout:** brand detection as you type (Visa, Mastercard, RuPay, American Express), number, expiry
   and CVC checks, and two saved cards for one-click filling. Nothing is charged. The full card number and CVC
   never leave the browser; only the brand and last 4 digits are stored for the receipt.
@@ -31,7 +38,7 @@ See [SPEC.md](SPEC.md) for the specification and [tasks/plan.md](tasks/plan.md) 
   limit of 20 AI calls per user per hour.
 - **Help and accessibility:** info buttons that explain RTI terms, a Help page, icons throughout, loaders
   between pages, a skip link, screen-reader announcements, and keyboard support. Automated axe-core checks
-  pass in both themes.
+  pass in both themes and in Hindi; Lighthouse accessibility is 100 on the home, filing and case pages.
 
 ## Tech stack
 

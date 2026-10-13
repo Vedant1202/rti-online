@@ -1,6 +1,6 @@
 # Implementation Plan: RTI Online v3 (Redesign)
 
-Builds on [SPEC.md → Version 3: Redesign](../SPEC.md#version-3-redesign-october-2026). Earlier plans: [plan-v1.md](plan-v1.md), [plan-v2.md](plan-v2.md). Status: **Draft, awaiting sign-off.** Workflow: commit and push straight to `main`; Vercel deploys each push.
+Builds on [SPEC.md → Version 3: Redesign](../SPEC.md#version-3-redesign-october-2026). Earlier plans: [plan-v1.md](plan-v1.md), [plan-v2.md](plan-v2.md). Status: **Done.** Workflow: commit and push straight to `main`; Vercel deploys each push.
 
 ## Overview
 

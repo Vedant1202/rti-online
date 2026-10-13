@@ -330,7 +330,7 @@ Plan: [tasks/plan-v2.md](tasks/plan-v2.md). Workflow for this project: commit an
 
 ## Version 3: Redesign (October 2026)
 
-Plan: [tasks/plan.md](tasks/plan.md). Status: **Draft, awaiting sign-off.** Workflow: commit and push directly to `main`.
+Plan: [tasks/plan.md](tasks/plan.md). Status: **Built and deployed (October 2026).** Workflow: commit and push directly to `main`. Evidence: [docs/redesign](docs/redesign/README.md).
 
 ### Objective
 
@@ -461,3 +461,18 @@ docs/redesign/             → before/after screenshots and click counts
   - Copy UX4G's logo or use the national emblem.
   - Translate interface text at runtime with Gemini.
   - Capture the real portal past its agreement checkboxes.
+
+### Changes made during the v3 build
+
+- **Saffron:** light-theme saffron is `#8f5b00` (between UX4G secondary-600 and -700), not `#a46800`, so the eyebrow chip on its tinted background passes AA.
+- **Authorities:** 25 across 17 ministries (the spec asked for about 24 across 12 or more).
+- **Popular chips:** they have short Hindi labels. Authority and ministry names stay as published, in English.
+- **Hindi scope grew:** it also covers the appeal form and appeal page, the Reply times page, the loading text, and card-validation messages.
+  - Appeal grounds are shown in Hindi but stored in English.
+  - The header is English for officers too, not only their pages.
+- **Text in the root layout:** the loading skeleton and the progress bar can't read the cookie, so they take the language from `<html lang>` after hydration, using `useSyncExternalStore` with an English server snapshot.
+- **Text-size buttons:** their accessible names include the visible glyph, e.g. "Larger text (A+)" (WCAG 2.5.3).
+- **Next step on the case page:** the pinned bar replaces the in-page buttons rather than repeating them. A late appeal after a reply, which isn't a pinned action, keeps its in-page button.
+- **Direct checkout fallback:** if starting the checkout fails after the request is created, the citizen lands on the request's pay page. A retry reuses the same request.
+- **Loader test:** on phones the Reply times link is below the fold, and Next.js prefetches a link's loading skeleton only once the link is on screen. The test now scrolls to the link and waits for the prefetch.
+- **Results:** Lighthouse accessibility is 100 on the home, filing and case pages, in light and dark, at 100% and 125% text, in English and Hindi. The run has 101 Playwright tests and 226 unit and integration tests.
