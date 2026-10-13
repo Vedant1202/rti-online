@@ -22,8 +22,11 @@ const MAP: Record<RequestStatus, StageInfo> = {
   appeal_decided: { stage: "decided", tone: "ok", closed: true },
 };
 
-/** Where a request is on the stepper, how to colour it, and whether the citizen has to act. */
-export function stageFor(status: RequestStatus) {
-  const { stage, tone, waitingForYou = false, closed = false } = MAP[status];
+/**
+ * Where a request is on the stepper, how to colour it, and whether the citizen has to act.
+ * A first appeal is a separate request, so pass its status to move the stepper on.
+ */
+export function stageFor(status: RequestStatus, appealStatus?: RequestStatus | null) {
+  const { stage, tone, waitingForYou = false, closed = false } = MAP[appealStatus ?? status];
   return { stage, index: STAGES.indexOf(stage), tone, waitingForYou, closed };
 }

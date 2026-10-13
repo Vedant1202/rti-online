@@ -48,6 +48,9 @@ test("golden path 2: split to 2 CPIOs, one replies, one asks a fee, citizen pays
   await expect(citizen.getByText(`${regNo}/1`)).toBeVisible();
   await citizen.getByRole("link", { name: new RegExp(`${regNo}/2`.replace(/\//g, "\\/")) }).click();
   await expect(citizen.getByTestId("fee-breakdown")).toContainText("₹24");
+  const step = citizen.getByRole("list", { name: "Progress" }).locator("[aria-current=step]");
+  await expect(step).toContainText("With officer");
+  await expect(step).toContainText("Waiting for you");
   await expect(citizen.getByText(/Clock paused/)).toBeVisible();
   await moveClock(citizen, 5);
   await citizen.reload();
@@ -67,6 +70,7 @@ test("golden path 2: split to 2 CPIOs, one replies, one asks a fee, citizen pays
   await cpioB.getByRole("button", { name: "Send reply" }).click();
   await citizen.reload();
   await expect(citizen.getByText("Replied", { exact: true })).toBeVisible();
+  await expect(citizen.getByRole("list", { name: "Progress" }).locator("[aria-current=step]")).toContainText("Reply");
 });
 
 test("golden path 3: no reply in 30 days → one-click appeal → FAA extends → decides", async ({ browser }, info) => {
@@ -90,11 +94,17 @@ test("golden path 3: no reply in 30 days → one-click appeal → FAA extends �
   await moveClock(citizen, 31);
   await citizen.goto(url);
   await expect(citizen.getByText(/Overdue by/)).toBeVisible();
+  await expect(citizen.getByTestId("next-action")).toContainText("No reply in time");
   await citizen.getByRole("link", { name: "File first appeal" }).click();
   await expect(citizen.getByRole("radio", { name: /No response within the time limit/ })).toBeChecked();
   await expect(citizen.getByLabel("Your appeal")).toHaveValue(/has not replied within the 30 days/);
   await citizen.getByRole("button", { name: "Submit appeal" }).click();
   await expect(citizen.getByTestId("appeal-reg-no")).toHaveText(/^MORLY\/A\/E\/\d{2}\/\d{5}$/);
+  const appealUrl = citizen.url();
+  await citizen.goto(url);
+  await expect(citizen.getByRole("list", { name: "Progress" }).locator("[aria-current=step]")).toContainText("Appeal");
+  await expect(citizen.getByTestId("next-action")).toHaveCount(0);
+  await citizen.goto(appealUrl);
 
   const faa = await as(browser, officer("MORLY", "faa"), viewport);
   await faa.goto("/officer/faa");

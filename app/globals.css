@@ -178,3 +178,10 @@ body {
     var(--flag-green) 66.66% 100%
   );
 }
+
+/* On phones the case page's next-action bar sits above the tab bar; make room for both. */
+@media (max-width: 47.99rem) {
+  body:has(.next-action-bar) {
+    padding-bottom: calc(4rem + 7.5rem + env(safe-area-inset-bottom));
+  }
+}

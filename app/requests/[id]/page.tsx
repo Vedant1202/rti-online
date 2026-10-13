@@ -10,6 +10,11 @@ import { Timeline } from "@/components/timeline";
 import { CitizenActions } from "./citizen-actions";
 import { HelpTip } from "@/components/help-tip";
 import { OfficerPanel } from "./officer-panel";
+import { CaseStepper } from "@/components/case-stepper";
+import { NextActionBar } from "@/components/next-action-bar";
+import { nextAction } from "@/lib/next-action";
+import { getDict } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n";
 
 export default async function CasePage(props: PageProps<"/requests/[id]">) {
   const { id } = await props.params;
@@ -19,9 +24,22 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
   const view = await getCaseView(user, id, now);
   const { root, current } = view;
   const isOwner = user.id === root.citizenId;
+  const { t } = await getDict();
+  const action = isOwner
+    ? nextAction({
+        id: current.id,
+        status: current.status,
+        bpl: current.bpl,
+        openFeePaise: view.demands.find((d) => !d.paidAt)?.totalPaise ?? null,
+        appeal: view.clocks.appeal,
+        appealed: view.appeals.some((a) => a.parentId === current.id),
+        hasParts: view.parts.length > 0,
+      })
+    : null;
 
   return (
     <div className="grid gap-6">
+      {action && <NextActionBar action={action} t={t} />}
       {(paid || filed) && current.regNo && (
         <p role="status" className="rounded-md bg-ok/10 px-4 py-3 text-sm text-ok">
           Your request is filed. Registration number <strong className="font-mono">{current.regNo}</strong>. We
@@ -61,6 +79,14 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
         </p>
       </header>
 
+      <section className="card">
+        <CaseStepper
+          status={current.status}
+          appealStatus={view.appeals.filter((a) => a.parentId === current.id).at(-1)?.status ?? null}
+          t={t}
+        />
+      </section>
+
       {user.role !== "citizen" && <OfficerPanel user={user} view={view} now={now} />}
 
       {view.chain.length > 1 && (
@@ -80,8 +106,13 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
 
       {(view.clocks.reply || current.status === "pending_payment" || isOwner) && (
         <section className="card grid gap-3">
-          <ClockSummary clock={view.clocks.reply} />
-          {isOwner && <CitizenActions view={view} now={now.toISOString()} />}
+          <ClockSummary
+            clock={view.clocks.reply}
+            totalDays={current.lifeLiberty === "accepted" ? 2 : 30}
+            barLabel={t.case.daysLeftLabel}
+            barValue={(left, total) => fmt(t.case.daysLeftValue, { n: left, total })}
+          />
+          {isOwner && <CitizenActions view={view} action={action} />}
         </section>
       )}
 
@@ -132,7 +163,7 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
         </section>
       )}
 
-      <section className="grid gap-3">
+      <section id="timeline" className="grid scroll-mt-28 gap-3">
         <h2 className="text-lg font-bold">Timeline</h2>
         <Timeline events={view.timeline} documents={view.documents} />
       </section>

@@ -26,4 +26,10 @@ describe("stageFor", () => {
     const result = stageFor(status);
     expect(result).toEqual({ ...expected[status], index: STAGES.indexOf(expected[status].stage) });
   });
+
+  it("moves to Appeal once a first appeal is filed, and to Decided when it's decided", () => {
+    expect(stageFor("forwarded", "appeal_filed")).toMatchObject({ stage: "appeal", tone: "info", closed: false });
+    expect(stageFor("replied", "appeal_filed")).toMatchObject({ stage: "appeal" });
+    expect(stageFor("rejected", "appeal_decided")).toMatchObject({ stage: "decided", tone: "ok", closed: true });
+  });
 });

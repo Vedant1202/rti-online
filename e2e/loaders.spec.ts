@@ -8,7 +8,7 @@ test("a slow page with a skeleton shows it instantly, then the page", async ({ p
     if (!route.request().headers()["next-router-prefetch"]) await new Promise((r) => setTimeout(r, 1500));
     await route.continue();
   });
-  await page.getByRole("link", { name: /How fast each ministry answers/ }).click();
+  await page.getByRole("link", { name: /how fast each ministry answers/i }).click();
   await expect(page.getByTestId("page-skeleton")).toBeVisible();
   await expect(page.getByRole("heading", { name: "How fast ministries reply" })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByTestId("page-skeleton")).toBeHidden();

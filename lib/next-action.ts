@@ -32,7 +32,7 @@ export function nextAction(r: ActionInput): NextAction | null {
     case "fee_requested":
       return { kind: "pay_additional", requestId, amountPaise: r.openFeePaise ?? 0, href: `/requests/${r.id}/pay` };
     case "documents_requested":
-      return { kind: "upload_document", requestId, href: `/requests/${r.id}` };
+      return { kind: "upload_document", requestId, href: `/requests/${r.id}#upload` };
   }
   if (r.appealed || !r.appeal || r.appeal.state === "not_yet") return null;
   if (!["filed", "forwarded", "replied", "rejected"].includes(r.status)) return null;

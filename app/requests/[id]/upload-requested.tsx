@@ -9,7 +9,7 @@ export function UploadRequested({ requestId, note }: { requestId: string; note: 
   const { run, busy, error } = useAction();
   const [doc, setDoc] = useState<Uploaded | null>(null);
   return (
-    <div className="grid gap-3">
+    <div id="upload" className="grid scroll-mt-24 gap-3">
       <p className="text-sm">
         <strong>The CPIO asked for a document:</strong> {note}
       </p>

@@ -4,9 +4,13 @@ import { formatRupees } from "@/lib/rti/fees";
 import { formatDate } from "@/lib/format";
 import { UploadRequested } from "./upload-requested";
 import { HelpTip } from "@/components/help-tip";
+import type { NextAction } from "@/lib/next-action";
 
-/** What the citizen can do next on this request. Later tasks add document upload and appeals. */
-export function CitizenActions({ view }: { view: CaseView; now: string }) {
+/**
+ * Details for the citizen's next step on this request (fee breakdown, upload panel, appeal dates).
+ * When the pinned next-action bar is showing, its button is the only one, so it isn't repeated here.
+ */
+export function CitizenActions({ view, action }: { view: CaseView; action: NextAction | null }) {
   const { current } = view;
   const appealed = view.appeals.some((a) => a.parentId === current.id);
   const window = view.clocks.appeal;
@@ -14,9 +18,11 @@ export function CitizenActions({ view }: { view: CaseView; now: string }) {
     return (
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-sm">This request isn&apos;t filed until the fee is paid.</p>
-        <Link href={`/requests/${current.id}/pay`} className="btn">
-          {current.bpl ? "File request" : "Pay ₹10"}
-        </Link>
+        {!action && (
+          <Link href={`/requests/${current.id}/pay`} className="btn">
+            {current.bpl ? "File request" : "Pay ₹10"}
+          </Link>
+        )}
       </div>
     );
   }
@@ -45,9 +51,11 @@ export function CitizenActions({ view }: { view: CaseView; now: string }) {
             </tbody>
           </table>
         )}
-        <Link href={`/requests/${current.id}/pay`} className="btn w-fit">
-          Pay {open ? formatRupees(open.totalPaise) : "fee"}
-        </Link>
+        {!action && (
+          <Link href={`/requests/${current.id}/pay`} className="btn w-fit">
+            Pay {open ? formatRupees(open.totalPaise) : "fee"}
+          </Link>
+        )}
       </div>
     );
   }
@@ -65,9 +73,11 @@ export function CitizenActions({ view }: { view: CaseView; now: string }) {
   }
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Link href={`/appeals/new/${current.id}`} className="btn">
-        File first appeal
-      </Link>
+      {!action && (
+        <Link href={`/appeals/new/${current.id}`} className="btn">
+          File first appeal
+        </Link>
+      )}
       <HelpTip topic="firstAppeal" />
       <span className="text-sm text-muted">
         {window.state === "open"

@@ -16,7 +16,37 @@ export function ClockBadge({ clock }: { clock: ReplyClock | null }) {
   }
 }
 
-export function ClockSummary({ clock }: { clock: ReplyClock | null }) {
+/** A bar showing how much of the reply period is left (30 days, or 2 for an accepted life-or-liberty claim). */
+function DaysLeftBar({ left, total, paused, label, valueText }: { left: number; total: number; paused: boolean; label: string; valueText: string }) {
+  const value = Math.max(0, Math.min(left, total));
+  const tone = paused || value <= 3 ? "bg-warn" : "bg-accent";
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-valuenow={value}
+      aria-valuetext={valueText}
+      className="h-2 w-full overflow-hidden rounded-full bg-line"
+    >
+      <div className={`h-full rounded-full ${tone}`} style={{ width: `${(value / total) * 100}%` }} />
+    </div>
+  );
+}
+
+export function ClockSummary({
+  clock,
+  totalDays,
+  barLabel,
+  barValue,
+}: {
+  clock: ReplyClock | null;
+  totalDays?: number;
+  /** Accessible name and value text for the days-left bar (from the dictionary). */
+  barLabel?: string;
+  barValue?: (left: number, total: number) => string;
+}) {
   if (!clock) return null;
   const text = {
     running: clock.state === "running" && `Reply due by ${formatDate(clock.dueAt)} (${plural(clock.daysLeft, "day")} left).`,
@@ -28,5 +58,13 @@ export function ClockSummary({ clock }: { clock: ReplyClock | null }) {
       `The reply was due on ${formatDate(clock.dueAt)}. You can file a first appeal now.`,
     met: clock.state === "met" && `The authority answered on ${formatDate(clock.repliedAt)}.`,
   }[clock.state];
-  return <p className="text-sm">{text}</p>;
+  const left = clock.state === "running" ? clock.daysLeft : clock.state === "paused" ? clock.daysLeftWhenPaused : null;
+  return (
+    <div className="grid gap-2">
+      <p className="text-sm">{text}</p>
+      {left !== null && totalDays && barLabel && barValue && (
+        <DaysLeftBar left={left} total={totalDays} paused={clock.state === "paused"} label={barLabel} valueText={barValue(left, totalDays)} />
+      )}
+    </div>
+  );
 }

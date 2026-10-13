@@ -39,11 +39,11 @@ describe("nextAction", () => {
     });
   });
 
-  it("asks for a requested document on the case page", () => {
+  it("asks for a requested document, linking to the upload panel on the case page", () => {
     expect(nextAction({ ...base, status: "documents_requested" })).toEqual({
       kind: "upload_document",
       requestId: "r1",
-      href: "/requests/r1",
+      href: "/requests/r1#upload",
     });
   });
 

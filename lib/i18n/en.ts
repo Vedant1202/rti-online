@@ -94,6 +94,24 @@ export const en = {
     noReplyLateText: "The 30-day appeal window has passed. You can still appeal with a reason for the delay.",
     fileAppeal: "File first appeal",
   },
+  case: {
+    progress: "Progress",
+    stepOf: "Step {n} of {total}",
+    current: "current",
+    done: "done",
+    waitingForYou: "Waiting for you",
+    closed: "Closed",
+    stages: {
+      filed: "Filed",
+      with_officer: "With officer",
+      reply: "Reply",
+      appeal: "Appeal",
+      decided: "Decided",
+    },
+    nextStep: "Next step",
+    daysLeftLabel: "Days left on the reply clock",
+    daysLeftValue: "{n} of {total} days left",
+  },
   footer: {
     disclaimer:
       "Student project. Not affiliated with DoPT or the Government of India. Do not enter real personal information.",
