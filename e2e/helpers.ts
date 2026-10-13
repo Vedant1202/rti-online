@@ -47,8 +47,10 @@ export async function as(browser: Browser, email: string, viewport?: { width: nu
   return page;
 }
 
-/** Files and pays a request through the UI; returns the case page URL and registration number. */
-export async function fileViaUi(page: Page, opts: { authority: RegExp; subject: string; body: string }) {
+type FileOpts = { authority: RegExp; subject: string; body: string };
+
+/** Fills in the filing form and stops on the card checkout page. */
+export async function startCheckoutViaUi(page: Page, opts: FileOpts) {
   await page.goto("/requests/new");
   await page.getByLabel("Subject").fill(opts.subject);
   await page.getByLabel("What information do you want?").fill(opts.body);
@@ -57,6 +59,12 @@ export async function fileViaUi(page: Page, opts: { authority: RegExp; subject: 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByRole("button", { name: /^Pay ₹/ }).click();
+  await page.waitForURL(/\/pay\//);
+}
+
+/** Files and pays a request through the UI; returns the case page URL and registration number. */
+export async function fileViaUi(page: Page, opts: FileOpts) {
+  await startCheckoutViaUi(page, opts);
   await page.getByRole("button", { name: /Visa ending in 4242/ }).click();
   await page.getByRole("button", { name: /^Pay ₹/ }).click();
   const regNo = (await page.getByTestId("reg-no").textContent())!.trim();

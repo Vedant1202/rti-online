@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HeaderPlaceholder, SiteHeader } from "@/components/site-header";
 import { FooterPlaceholder, SiteFooter } from "@/components/site-footer";
+import { BottomNav } from "@/components/bottom-nav";
 import { prefsScript } from "@/lib/prefs";
 import { Suspense } from "react";
 import { AnnouncerProvider } from "@/components/announcer";
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: prefsScript }} />
       </head>
-      <body className="flex min-h-full flex-col font-sans">
+      <body className="flex min-h-full flex-col font-sans max-md:pb-[calc(4rem+env(safe-area-inset-bottom))]">
         <Suspense fallback={null}>
           <NavProgress />
         </Suspense>
@@ -53,6 +54,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </main>
           <Suspense fallback={<FooterPlaceholder />}>
             <SiteFooter />
+          </Suspense>
+          <Suspense fallback={null}>
+            <BottomNav />
           </Suspense>
         </AnnouncerProvider>
       </body>

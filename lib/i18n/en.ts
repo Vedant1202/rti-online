@@ -21,6 +21,7 @@ export const en = {
   },
   nav: {
     main: "Main",
+    quick: "Quick navigation",
     brand: "RTI Online",
     brandTag: "Rebuild",
     home: "Home",
