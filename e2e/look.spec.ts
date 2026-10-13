@@ -10,9 +10,10 @@ test("headings use the Poppins display face and body text stays Noto Sans", asyn
 });
 
 test("primary buttons use the brand gradient and cards have rounded, shadowed corners", async ({ page }) => {
-  await page.goto("/");
-  const btn = page.locator("main a.btn").first();
+  await page.goto("/login");
+  const btn = page.locator("main .btn").first();
   expect(await btn.evaluate((el) => getComputedStyle(el).backgroundImage)).toMatch(/linear-gradient/);
+  await page.goto("/");
   const card = page.locator("main .card").first();
   const style = await card.evaluate((el) => ({ radius: getComputedStyle(el).borderTopLeftRadius, shadow: getComputedStyle(el).boxShadow }));
   expect(style.radius).toBe("16px");

@@ -214,6 +214,26 @@ h3 {
   @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent bg-surface px-5 py-2 text-sm font-semibold text-accent hover:bg-accent/10 disabled:opacity-50 md:min-h-10;
   transition: background-color 150ms ease;
 }
+/* Buttons on the hero gradient: solid light, and outlined light. */
+.btn-light {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold;
+  background: var(--hero-ink);
+  color: var(--grad-1);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  transition: transform 150ms ease;
+}
+.btn-light:hover {
+  transform: translateY(-1px);
+}
+.btn-outline-light {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-5 py-2 text-sm font-semibold;
+  border-color: rgb(255 255 255 / 0.55);
+  color: var(--hero-ink);
+  transition: background-color 150ms ease;
+}
+.btn-outline-light:hover {
+  background: rgb(255 255 255 / 0.12);
+}
 .input {
   @apply w-full rounded-xl border border-field bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:outline-2 focus:outline-accent;
 }

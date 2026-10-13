@@ -9,7 +9,18 @@ import { useT } from "@/lib/i18n/client";
  * A small "i" button that reveals a plain-language explanation.
  * Works with mouse, keyboard (Enter/Space to open, Escape to close) and screen readers.
  */
-export function InfoTip({ label, children, align = "left" }: { label: string; children: React.ReactNode; align?: "left" | "right" }) {
+export function InfoTip({
+  label,
+  children,
+  align = "left",
+  onDark = false,
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "left" | "right";
+  /** Use on the hero gradient. */
+  onDark?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const { t } = useT();
   const id = useId();
@@ -40,7 +51,7 @@ export function InfoTip({ label, children, align = "left" }: { label: string; ch
       <button
         ref={button}
         type="button"
-        className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted hover:text-accent"
+        className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${onDark ? "text-hero-muted hover:text-hero-ink" : "text-muted hover:text-accent"}`}
         aria-label={fmt(t.help.moreAbout, { label })}
         aria-expanded={open}
         aria-controls={id}
@@ -53,7 +64,7 @@ export function InfoTip({ label, children, align = "left" }: { label: string; ch
         role="region"
         aria-label={label}
         hidden={!open}
-        className={`absolute top-7 z-30 w-72 max-w-[80vw] rounded-md border border-line bg-surface p-3 text-left text-sm font-normal text-ink shadow-lg ${align === "right" ? "right-0" : "left-0"}`}
+        className={`absolute top-7 z-30 w-72 max-w-[80vw] rounded-xl border border-line bg-surface p-3 text-left font-sans text-sm font-normal tracking-normal text-ink shadow-lg ${align === "right" ? "right-0" : "left-0"}`}
       >
         {children}
       </span>

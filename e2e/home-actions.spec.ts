@@ -13,6 +13,19 @@ test("signed-out visitors get the two main actions and how it works", async ({ p
   await expect(steps.first()).toContainText("Write");
 });
 
+test("the visitor home leads with a gradient hero, a decorative preview and why it's better", async ({ page }, info) => {
+  await page.goto("/");
+  const hero = page.getByTestId("hero");
+  expect(await hero.evaluate((el) => getComputedStyle(el).backgroundImage)).toMatch(/gradient/);
+  await expect(hero.getByRole("heading", { level: 1 })).toBeVisible();
+  // The preview card is decoration only: hidden from screen readers, shown on wider screens.
+  const preview = page.getByTestId("hero-preview");
+  await expect(preview).toHaveAttribute("aria-hidden", "true");
+  if (info.project.name === "desktop") await expect(preview).toBeVisible();
+  const why = page.getByRole("region", { name: "Why it's better" });
+  await expect(why.getByRole("listitem")).toHaveCount(4);
+});
+
 test("a citizen's home shows what needs doing; an additional fee is 2 clicks from the card form", async ({ browser }, info) => {
   const viewport = vp(info.project.name);
   const citizen = await as(browser, `home-${Date.now()}@example.com`, viewport);
