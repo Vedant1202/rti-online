@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { suggestAuthorities } from "@/lib/rti/suggest-authority";
 import { detectStateBody } from "@/lib/rti/state-body";
 import authorities from "@/data/authorities.json";
+import { POPULAR_CODES } from "@/lib/authorities";
 
 const list = authorities.map((a) => ({ id: a.code, name: a.name, keywords: a.keywords }));
 
@@ -20,12 +21,30 @@ describe("suggestAuthorities", () => {
     expect(r.length).toBeLessThanOrEqual(3);
   });
 
+  it.each([
+    ["My PF withdrawal claim on UAN 100200300 has been pending since July", "EPFOE"],
+    ["Status of my passport application; police verification is pending", "MEAPV"],
+    ["My income tax refund for AY 2025-26 has not been credited", "CBDTX"],
+    ["My Aadhaar update request has been pending for two months", "UIDAI"],
+    ["A speed post parcel was lost at the post office", "DOPOS"],
+    ["मेरा पीएफ कब मिलेगा?", "EPFOE"],
+  ])("suggests the right popular authority for: %s", (text, code) => {
+    expect(suggestAuthorities(text, list)[0]?.id).toBe(code);
+  });
+
   it("returns nothing when no keyword matches", () => {
     expect(suggestAuthorities("hello world", list)).toEqual([]);
   });
 
   it("doesn't match keywords inside other words", () => {
     expect(suggestAuthorities("I trained for the marathon", list)).toEqual([]);
+  });
+});
+
+describe("popular authorities", () => {
+  it("are the six most asked-about authorities, all seeded", () => {
+    expect(POPULAR_CODES).toEqual(["MORLY", "EPFOE", "MEAPV", "CBDTX", "UIDAI", "DOPOS"]);
+    for (const code of POPULAR_CODES) expect(authorities.some((a) => a.code === code)).toBe(true);
   });
 });
 

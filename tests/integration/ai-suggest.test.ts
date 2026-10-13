@@ -1,3 +1,4 @@
+import authorityData from "@/data/authorities.json";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createTestDb } from "../helpers/db";
 import { seeded } from "../helpers/fixtures";
@@ -36,7 +37,7 @@ describe("recommended department", () => {
     const ids = (model.last!.schema.properties as Record<string, { enum: string[] }>).authorityId.enum;
     expect(ids).toContain(rail.id);
     expect(ids).toContain("none");
-    expect(ids).toHaveLength(5);
+    expect(ids).toHaveLength(authorityData.length + 1); // every seeded central authority + "none"
     expect(model.last!.prompt).toContain("Ministry of Railways");
     expect(model.last!.prompt).toContain("PNR 4512398760");
   });

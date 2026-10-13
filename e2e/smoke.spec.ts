@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import authorities from "../data/authorities.json";
 
 test("landing page shows the student-project disclaimer", async ({ page }) => {
   await page.goto("/");
@@ -14,5 +15,5 @@ test("the daily cron route rejects calls without the secret", async ({ request }
 test("the public stats page lists every authority", async ({ page }) => {
   await page.goto("/stats");
   await expect(page.getByRole("heading", { name: "How fast ministries reply" })).toBeVisible();
-  await expect(page.getByRole("row")).toHaveCount(5); // header + 4 authorities
+  await expect(page.getByRole("row")).toHaveCount(authorities.length + 1); // header + every authority
 });

@@ -3,24 +3,388 @@
     "code": "DOPAT",
     "name": "Department of Personnel and Training",
     "ministry": "Ministry of Personnel, Public Grievances and Pensions",
-    "keywords": ["recruitment", "upsc", "ssc", "ias", "promotion", "deputation", "civil services", "transfer posting", "service rules", "rti act", "cadre"]
+    "keywords": [
+      "recruitment",
+      "upsc",
+      "ssc",
+      "ias",
+      "promotion",
+      "deputation",
+      "civil services",
+      "transfer posting",
+      "service rules",
+      "rti act",
+      "cadre"
+    ]
   },
   {
     "code": "DOPPW",
     "name": "Department of Pension and Pensioners' Welfare",
     "ministry": "Ministry of Personnel, Public Grievances and Pensions",
-    "keywords": ["pension", "pensioner", "ppo", "gratuity", "family pension", "retirement", "commutation", "पेंशन", "सेवानिवृत्ति"]
+    "keywords": [
+      "pension",
+      "pensioner",
+      "ppo",
+      "gratuity",
+      "family pension",
+      "retirement",
+      "commutation",
+      "पेंशन",
+      "सेवानिवृत्ति"
+    ]
   },
   {
     "code": "MORLY",
     "name": "Ministry of Railways",
     "ministry": "Ministry of Railways",
-    "keywords": ["train", "railway", "ticket", "irctc", "refund", "station", "coach", "platform", "rrb", "level crossing", "रेल", "ट्रेन", "टिकट"]
+    "keywords": [
+      "train",
+      "railway",
+      "ticket",
+      "irctc",
+      "refund",
+      "station",
+      "coach",
+      "platform",
+      "rrb",
+      "level crossing",
+      "रेल",
+      "ट्रेन",
+      "टिकट"
+    ],
+    "popular": true
   },
   {
     "code": "MHOME",
     "name": "Ministry of Home Affairs",
     "ministry": "Ministry of Home Affairs",
-    "keywords": ["passport verification", "citizenship", "visa", "foreigner", "border", "census", "crpf", "bsf", "disaster", "oci", "नागरिकता"]
+    "keywords": [
+      "passport verification",
+      "citizenship",
+      "visa",
+      "foreigner",
+      "border",
+      "census",
+      "crpf",
+      "bsf",
+      "disaster",
+      "oci",
+      "नागरिकता"
+    ]
+  },
+  {
+    "code": "EPFOE",
+    "name": "Employees' Provident Fund Organisation",
+    "ministry": "Ministry of Labour and Employment",
+    "keywords": [
+      "pf",
+      "provident fund",
+      "epf",
+      "epfo",
+      "uan",
+      "pf withdrawal",
+      "pf transfer",
+      "eps pension",
+      "pf claim",
+      "पीएफ",
+      "भविष्य निधि"
+    ],
+    "popular": true
+  },
+  {
+    "code": "ESICO",
+    "name": "Employees' State Insurance Corporation",
+    "ministry": "Ministry of Labour and Employment",
+    "keywords": [
+      "esic",
+      "esi",
+      "esi card",
+      "esi hospital",
+      "sickness benefit",
+      "maternity benefit",
+      "ईएसआईसी"
+    ]
+  },
+  {
+    "code": "MEAPV",
+    "name": "Passport Seva (CPV Division)",
+    "ministry": "Ministry of External Affairs",
+    "keywords": [
+      "passport",
+      "passport seva",
+      "tatkal",
+      "police verification",
+      "passport office",
+      "rpo",
+      "passport renewal",
+      "पासपोर्ट"
+    ],
+    "popular": true
+  },
+  {
+    "code": "CBDTX",
+    "name": "Central Board of Direct Taxes (Income Tax Department)",
+    "ministry": "Ministry of Finance",
+    "keywords": [
+      "income tax",
+      "itr",
+      "tax refund",
+      "pan",
+      "pan card",
+      "tds",
+      "assessment",
+      "tax notice",
+      "आयकर"
+    ],
+    "popular": true
+  },
+  {
+    "code": "CBICX",
+    "name": "Central Board of Indirect Taxes and Customs",
+    "ministry": "Ministry of Finance",
+    "keywords": [
+      "gst",
+      "gst refund",
+      "gstin",
+      "customs",
+      "excise",
+      "import duty",
+      "जीएसटी",
+      "सीमा शुल्क"
+    ]
+  },
+  {
+    "code": "DOFSV",
+    "name": "Department of Financial Services",
+    "ministry": "Ministry of Finance",
+    "keywords": [
+      "bank",
+      "bank account",
+      "loan",
+      "public sector bank",
+      "mudra",
+      "jan dhan",
+      "insurance claim",
+      "बैंक",
+      "ऋण"
+    ]
+  },
+  {
+    "code": "UIDAI",
+    "name": "Unique Identification Authority of India (Aadhaar)",
+    "ministry": "Ministry of Electronics and Information Technology",
+    "keywords": [
+      "aadhaar",
+      "aadhar",
+      "uid",
+      "aadhaar update",
+      "aadhaar enrolment",
+      "biometric",
+      "आधार"
+    ],
+    "popular": true
+  },
+  {
+    "code": "DOPOS",
+    "name": "Department of Posts (India Post)",
+    "ministry": "Ministry of Communications",
+    "keywords": [
+      "post office",
+      "speed post",
+      "parcel",
+      "money order",
+      "postal",
+      "india post",
+      "registered post",
+      "डाक",
+      "स्पीड पोस्ट"
+    ],
+    "popular": true
+  },
+  {
+    "code": "DOTEL",
+    "name": "Department of Telecommunications",
+    "ministry": "Ministry of Communications",
+    "keywords": [
+      "telecom",
+      "mobile tower",
+      "spectrum",
+      "bsnl",
+      "sim card",
+      "broadband",
+      "दूरसंचार"
+    ]
+  },
+  {
+    "code": "NHAIN",
+    "name": "National Highways Authority of India",
+    "ministry": "Ministry of Road Transport and Highways",
+    "keywords": [
+      "highway",
+      "national highway",
+      "toll",
+      "toll plaza",
+      "fastag",
+      "road construction",
+      "राजमार्ग",
+      "टोल"
+    ]
+  },
+  {
+    "code": "MORTH",
+    "name": "Ministry of Road Transport and Highways",
+    "ministry": "Ministry of Road Transport and Highways",
+    "keywords": [
+      "driving licence",
+      "vehicle registration",
+      "motor vehicles act",
+      "parivahan",
+      "road safety",
+      "ड्राइविंग लाइसेंस"
+    ]
+  },
+  {
+    "code": "DFPDS",
+    "name": "Department of Food and Public Distribution",
+    "ministry": "Ministry of Consumer Affairs, Food and Public Distribution",
+    "keywords": [
+      "ration",
+      "ration card",
+      "pds",
+      "fair price shop",
+      "food grain",
+      "fci",
+      "राशन",
+      "राशन कार्ड"
+    ]
+  },
+  {
+    "code": "DOCAF",
+    "name": "Department of Consumer Affairs",
+    "ministry": "Ministry of Consumer Affairs, Food and Public Distribution",
+    "keywords": [
+      "consumer complaint",
+      "mrp",
+      "weights and measures",
+      "hallmark",
+      "bis",
+      "उपभोक्ता"
+    ]
+  },
+  {
+    "code": "MOHFW",
+    "name": "Department of Health and Family Welfare",
+    "ministry": "Ministry of Health and Family Welfare",
+    "keywords": [
+      "hospital",
+      "aiims",
+      "cghs",
+      "ayushman",
+      "vaccine",
+      "vaccination",
+      "medical",
+      "अस्पताल",
+      "स्वास्थ्य"
+    ]
+  },
+  {
+    "code": "DOSEL",
+    "name": "Department of School Education and Literacy",
+    "ministry": "Ministry of Education",
+    "keywords": [
+      "school",
+      "kendriya vidyalaya",
+      "cbse",
+      "mid day meal",
+      "navodaya",
+      "teacher",
+      "स्कूल",
+      "विद्यालय"
+    ]
+  },
+  {
+    "code": "DOHED",
+    "name": "Department of Higher Education",
+    "ministry": "Ministry of Education",
+    "keywords": [
+      "university",
+      "ugc",
+      "scholarship",
+      "iit",
+      "central university",
+      "college",
+      "degree",
+      "विश्वविद्यालय",
+      "छात्रवृत्ति"
+    ]
+  },
+  {
+    "code": "MOEFC",
+    "name": "Ministry of Environment, Forest and Climate Change",
+    "ministry": "Ministry of Environment, Forest and Climate Change",
+    "keywords": [
+      "pollution",
+      "forest clearance",
+      "environment clearance",
+      "tree felling",
+      "wildlife",
+      "प्रदूषण",
+      "पर्यावरण"
+    ]
+  },
+  {
+    "code": "DOAFW",
+    "name": "Department of Agriculture and Farmers Welfare",
+    "ministry": "Ministry of Agriculture and Farmers Welfare",
+    "keywords": [
+      "pm kisan",
+      "crop insurance",
+      "fasal bima",
+      "msp",
+      "farmer",
+      "kisan credit card",
+      "किसान",
+      "फसल"
+    ]
+  },
+  {
+    "code": "DESWM",
+    "name": "Department of Ex-Servicemen Welfare",
+    "ministry": "Ministry of Defence",
+    "keywords": [
+      "ex-servicemen",
+      "defence pension",
+      "echs",
+      "one rank one pension",
+      "orop",
+      "sainik",
+      "पूर्व सैनिक"
+    ]
+  },
+  {
+    "code": "MORDV",
+    "name": "Ministry of Rural Development",
+    "ministry": "Ministry of Rural Development",
+    "keywords": [
+      "mgnrega",
+      "nrega",
+      "job card",
+      "pmay gramin",
+      "rural housing",
+      "मनरेगा"
+    ]
+  },
+  {
+    "code": "MOHUA",
+    "name": "Ministry of Housing and Urban Affairs",
+    "ministry": "Ministry of Housing and Urban Affairs",
+    "keywords": [
+      "pmay urban",
+      "smart city",
+      "metro rail",
+      "cpwd",
+      "government housing",
+      "आवास"
+    ]
   }
 ]

@@ -77,7 +77,7 @@ test("keyboard only: file → pay → see the timeline", async ({ page }, info) 
     await page.keyboard.press("Tab");
   }
   const railways = page.getByRole("radio", { name: /Ministry of Railways/ });
-  for (let i = 0; i < 6 && !(await railways.isChecked()); i++) await page.keyboard.press("ArrowDown");
+  for (let i = 0; i < 40 && !(await railways.isChecked()); i++) await page.keyboard.press("ArrowDown");
   await expect(railways).toBeChecked();
   await tabTo("Continue");
   await page.keyboard.press("Enter");
