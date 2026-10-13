@@ -313,6 +313,10 @@ export const en = {
   },
   login: {
     title: "Sign in",
+    brandTitle: "Ask the government. Track every step.",
+    reason1: "Every request on one clear timeline",
+    reason2: "An email whenever something changes",
+    reason3: "Appeal in one click when the law allows",
     email: "Email address",
     emailHint: "We'll email you a 6-digit code. No password needed.",
     send: "Email me a code",

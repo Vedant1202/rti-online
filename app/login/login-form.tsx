@@ -61,7 +61,7 @@ export function LoginForm({ next }: { next?: string }) {
   }
 
   return (
-    <div className="card grid max-w-md gap-4">
+    <div className="grid w-full max-w-md gap-4">
       {step === "email" ? (
         <form onSubmit={send} className="grid gap-3">
           <label className="label" htmlFor="email">
