@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test("Tab reaches 'Skip to content' first and it jumps to the main content", async ({ page }) => {
   await page.goto("/");
+  await page.getByTestId("header-row").waitFor(); // the real header, not its loading placeholder
   await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
