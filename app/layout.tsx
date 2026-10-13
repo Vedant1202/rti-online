@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HeaderPlaceholder, SiteHeader } from "@/components/site-header";
+import { FooterPlaceholder, SiteFooter } from "@/components/site-footer";
 import { prefsScript } from "@/lib/prefs";
 import { Suspense } from "react";
 import { AnnouncerProvider } from "@/components/announcer";
@@ -36,12 +37,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: prefsScript }} />
       </head>
       <body className="flex min-h-full flex-col font-sans">
-        <a
-          href="#main"
-          className="sr-only z-50 rounded-md bg-accent px-4 py-2 font-semibold text-accent-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
-        >
-          Skip to content
-        </a>
         <Suspense fallback={null}>
           <NavProgress />
         </Suspense>
@@ -56,12 +51,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           >
             {children}
           </main>
-          <footer className="border-t border-line bg-surface">
-            <p className="mx-auto max-w-5xl px-4 py-4 text-xs text-muted" data-testid="disclaimer">
-              Student project. Not affiliated with DoPT or the Government of India. Do not enter
-              real personal information. <a href="/help">Help</a>
-            </p>
-          </footer>
+          <Suspense fallback={<FooterPlaceholder />}>
+            <SiteFooter />
+          </Suspense>
         </AnnouncerProvider>
       </body>
     </html>

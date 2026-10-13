@@ -167,3 +167,14 @@ body {
   border-right-color: transparent;
   animation: spin 0.7s linear infinite;
 }
+
+/* Tricolour hairline under the utility bar. */
+.tricolour {
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--flag-saffron) 0 33.33%,
+    var(--flag-white) 33.33% 66.66%,
+    var(--flag-green) 66.66% 100%
+  );
+}

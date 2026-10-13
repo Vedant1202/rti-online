@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { THEME_COOKIE, nextTheme, type Theme } from "@/lib/theme";
-
-const LABEL: Record<Theme, string> = { system: "System", light: "Light", dark: "Dark" };
+import { savePref } from "@/lib/prefs";
+import { fmt } from "@/lib/i18n";
+import { useT } from "@/lib/i18n/client";
 
 function Icon({ theme }: { theme: Theme }) {
   const common = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": true } as const;
@@ -32,24 +33,26 @@ function Icon({ theme }: { theme: Theme }) {
 
 /** Cycles System → Light → Dark. Saved in a cookie so the server renders the right theme with no flash. */
 export function ThemeToggle({ initial }: { initial: Theme }) {
+  const { t } = useT();
   const [theme, setTheme] = useState<Theme>(initial);
   const next = nextTheme(theme);
+  const label = { system: t.bar.themeSystem, light: t.bar.themeLight, dark: t.bar.themeDark };
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs text-muted hover:text-ink"
-      aria-label={`Theme: ${LABEL[theme]}. Switch to ${LABEL[next]}.`}
-      title={`Theme: ${LABEL[theme]}`}
+      className="inline-flex min-h-8 items-center gap-1.5 rounded border border-white/30 px-2 text-xs hover:bg-white/15"
+      aria-label={fmt(t.bar.themeLabel, { current: label[theme], next: label[next] })}
+      title={label[theme]}
       data-testid="theme-toggle"
       onClick={() => {
-        document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+        savePref(THEME_COOKIE, next);
         if (next === "system") delete document.documentElement.dataset.theme;
         else document.documentElement.dataset.theme = next;
         setTheme(next);
       }}
     >
       <Icon theme={theme} />
-      <span>{LABEL[theme]}</span>
+      <span className="hidden sm:inline">{label[theme]}</span>
     </button>
   );
 }

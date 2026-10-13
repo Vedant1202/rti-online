@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers";
 
-test("the Help page is reachable from the header and footer and expands answers", async ({ page }) => {
+test("the Help page is reachable from the navigation and footer and expands answers", async ({ page }, info) => {
   await page.goto("/stats");
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Help" }).click();
+  // Phones have no Help link in the one-row header.
+  const nav = info.project.name === "mobile" ? page.getByTestId("disclaimer") : page.getByRole("navigation", { name: "Main" });
+  await nav.getByRole("link", { name: "Help" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Help" })).toBeVisible();
   await page.getByText("First appeal", { exact: true }).click();
   await expect(page.getByText(/section 19\(1\)/)).toBeVisible();
