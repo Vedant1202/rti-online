@@ -1,7 +1,9 @@
 import type { CaseView } from "@/lib/services/views";
 import { formatDateTime } from "@/lib/format";
 import { formatRupees } from "@/lib/rti/fees";
-import { paidLine, type CardSummary } from "@/lib/card";
+import { BRAND_NAME, type CardSummary } from "@/lib/card";
+import { en } from "@/lib/i18n/en";
+import { fmt, type Dict } from "@/lib/i18n";
 import type { EventType } from "@/lib/contract";
 import {
   Archive,
@@ -59,67 +61,82 @@ type Doc = CaseView["documents"][number];
 
 const str = (v: unknown) => (typeof v === "string" ? v : "");
 
-function describe(e: Event): { title: string; detail?: string; tone: string } {
+function paid(amountPaise: number, card: CardSummary | null, t: Dict) {
+  const amount = formatRupees(amountPaise);
+  return card ? fmt(t.timeline.paidCard, { amount, brand: BRAND_NAME[card.brand], last4: card.last4 }) : fmt(t.timeline.paid, { amount });
+}
+
+function describe(e: Event, t: Dict): { title: string; detail?: string; tone: string } {
   const p = e.payload;
+  const tl = t.timeline;
   switch (e.type) {
     case "filed":
       return {
-        title: p.bpl ? "Filed (no fee, below poverty line)" : "Filed and paid",
+        title: p.bpl ? tl.filedBpl : tl.filedPaid,
         detail: [
-          `Registration number ${str(p.regNo)}.`,
-          !p.bpl && Number(p.amountPaise) > 0 ? paidLine(Number(p.amountPaise), p.card as CardSummary | null) : "",
+          fmt(tl.regNo, { regNo: str(p.regNo) }),
+          !p.bpl && Number(p.amountPaise) > 0 ? paid(Number(p.amountPaise), p.card as CardSummary | null, t) : "",
         ]
           .filter(Boolean)
           .join(" "),
         tone: "bg-ok",
       };
     case "forwarded":
-      return { title: `Forwarded to ${str(p.cpioNames) || "the CPIO"}`, tone: "bg-ok" };
+      return { title: fmt(tl.forwarded, { names: str(p.cpioNames) || tl.theCpio }), tone: "bg-ok" };
     case "split":
-      return { title: `Sent to ${p.parts} officers`, detail: "Each part has its own number, reply and appeal.", tone: "bg-ok" };
+      return { title: fmt(tl.split, { n: Number(p.parts) }), detail: tl.splitDetail, tone: "bg-ok" };
     case "transferred_out":
-      return { title: `Transferred to ${str(p.toAuthority)}`, detail: `New number ${str(p.newRegNo)}. ${str(p.note)}`, tone: "bg-ok" };
+      return {
+        title: fmt(tl.transferredOut, { authority: str(p.toAuthority) }),
+        detail: fmt(tl.transferredOutDetail, { regNo: str(p.newRegNo), note: str(p.note) }),
+        tone: "bg-ok",
+      };
     case "transferred_in":
-      return { title: `Received by ${str(p.authority)}`, detail: `Registration number ${str(p.regNo)}`, tone: "bg-ok" };
+      return {
+        title: fmt(tl.transferredIn, { authority: str(p.authority) }),
+        detail: fmt(tl.transferredInDetail, { regNo: str(p.regNo) }),
+        tone: "bg-ok",
+      };
     case "fee_requested":
-      return { title: `Additional fee requested: ${formatRupees(Number(p.totalPaise))}`, detail: "The reply clock is paused until you pay.", tone: "bg-warn" };
+      return { title: fmt(tl.feeRequested, { amount: formatRupees(Number(p.totalPaise)) }), detail: tl.feeRequestedDetail, tone: "bg-warn" };
     case "fee_paid":
       return {
-        title: `Additional fee paid: ${formatRupees(Number(p.amountPaise))}`,
-        detail: `${paidLine(Number(p.amountPaise), p.card as CardSummary | null)} The reply clock restarted.`,
+        title: fmt(tl.feePaid, { amount: formatRupees(Number(p.amountPaise)) }),
+        detail: fmt(tl.feePaidDetail, { paid: paid(Number(p.amountPaise), p.card as CardSummary | null, t) }),
         tone: "bg-ok",
       };
     case "documents_requested":
-      return { title: "Document requested", detail: str(p.note), tone: "bg-warn" };
+      return { title: tl.documentsRequested, detail: str(p.note), tone: "bg-warn" };
     case "documents_uploaded":
-      return { title: "Document uploaded", tone: "bg-ok" };
+      return { title: tl.documentsUploaded, tone: "bg-ok" };
     case "replied":
-      return { title: "Reply received", detail: str(p.body), tone: "bg-ok" };
+      return { title: tl.replied, detail: str(p.body), tone: "bg-ok" };
     case "rejected":
-      return { title: "Request rejected", detail: str(p.reason), tone: "bg-danger" };
+      return { title: tl.rejected, detail: str(p.reason), tone: "bg-danger" };
     case "closed_unpaid":
-      return { title: "Closed: additional fee not paid", tone: "bg-muted" };
+      return { title: tl.closedUnpaid, tone: "bg-muted" };
     case "life_liberty_claimed":
-      return { title: "Life-or-liberty claimed", detail: str(p.reason), tone: "bg-warn" };
+      return { title: tl.llClaimed, detail: str(p.reason), tone: "bg-warn" };
     case "life_liberty_accepted":
-      return { title: "48-hour limit accepted", detail: str(p.reason), tone: "bg-ok" };
+      return { title: tl.llAccepted, detail: str(p.reason), tone: "bg-ok" };
     case "life_liberty_declined":
-      return { title: "48-hour limit declined, 30 days apply", detail: str(p.reason), tone: "bg-warn" };
+      return { title: tl.llDeclined, detail: str(p.reason), tone: "bg-warn" };
     case "appeal_filed":
-      return { title: `First appeal filed: ${str(p.regNo)}`, detail: str(p.ground), tone: "bg-accent" };
+      return { title: fmt(tl.appealFiled, { regNo: str(p.regNo) }), detail: str(p.ground), tone: "bg-accent" };
     case "appeal_extended":
-      return { title: "Appeal deadline extended to 45 days", detail: str(p.reason), tone: "bg-warn" };
+      return { title: tl.appealExtended, detail: str(p.reason), tone: "bg-warn" };
     case "appeal_decided":
-      return { title: "Appeal decided", detail: str(p.order), tone: "bg-ok" };
+      return { title: tl.appealDecided, detail: str(p.order), tone: "bg-ok" };
   }
 }
 
-export function Timeline({ events, documents }: { events: Event[]; documents: Doc[] }) {
-  if (events.length === 0) return <p className="text-sm text-muted">Nothing has happened yet.</p>;
+/** English unless a citizen page passes its dictionary. */
+export function Timeline({ events, documents, t = en }: { events: Event[]; documents: Doc[]; t?: Dict }) {
+  if (events.length === 0) return <p className="text-sm text-muted">{t.timeline.empty}</p>;
   return (
     <ol className="grid gap-0" data-testid="timeline">
       {events.map((e, i) => {
-        const d = describe(e);
+        const d = describe(e, t);
         const doc = documents.find((x) => x.id === e.payload.documentId);
         return (
           <li key={e.id} className="grid grid-cols-[1.75rem_1fr] gap-3">

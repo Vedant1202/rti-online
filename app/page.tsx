@@ -148,8 +148,8 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
                     <span className="truncate text-xs text-muted">{r.authority}</span>
                   </span>
                   <span className="flex flex-wrap gap-2">
-                    <Pill tone={STATUS[r.status].tone}>{STATUS[r.status].label}</Pill>
-                    <ClockBadge clock={r.reply} />
+                    <Pill tone={STATUS[r.status].tone}>{t.status[r.status]}</Pill>
+                    <ClockBadge clock={r.reply} t={t} />
                   </span>
                 </Link>
               </li>

@@ -5,22 +5,23 @@ import { formatDate } from "@/lib/format";
 import { UploadRequested } from "./upload-requested";
 import { HelpTip } from "@/components/help-tip";
 import type { NextAction } from "@/lib/next-action";
+import { fmt, type Dict } from "@/lib/i18n";
 
 /**
  * Details for the citizen's next step on this request (fee breakdown, upload panel, appeal dates).
  * When the pinned next-action bar is showing, its button is the only one, so it isn't repeated here.
  */
-export function CitizenActions({ view, action }: { view: CaseView; action: NextAction | null }) {
+export function CitizenActions({ view, action, t }: { view: CaseView; action: NextAction | null; t: Dict }) {
   const { current } = view;
   const appealed = view.appeals.some((a) => a.parentId === current.id);
   const window = view.clocks.appeal;
   if (current.status === "pending_payment") {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm">This request isn&apos;t filed until the fee is paid.</p>
+        <p className="text-sm">{t.citizen.notFiled}</p>
         {!action && (
           <Link href={`/requests/${current.id}/pay`} className="btn">
-            {current.bpl ? "File request" : "Pay ₹10"}
+            {current.bpl ? t.citizen.fileRequest : fmt(t.citizen.pay, { amount: "₹10" })}
           </Link>
         )}
       </div>
@@ -31,7 +32,7 @@ export function CitizenActions({ view, action }: { view: CaseView; action: NextA
     return (
       <div className="grid gap-3" data-testid="fee-breakdown">
         <p className="flex items-center gap-1 font-semibold">
-          The CPIO asked for an additional fee <HelpTip topic="pausedClock" />
+          {t.citizen.feeAsked} <HelpTip topic="pausedClock" />
         </p>
         {open && (
           <table className="w-full max-w-md text-sm">
@@ -45,7 +46,7 @@ export function CitizenActions({ view, action }: { view: CaseView; action: NextA
                 </tr>
               ))}
               <tr>
-                <td className="py-1 font-semibold">Total</td>
+                <td className="py-1 font-semibold">{t.citizen.total}</td>
                 <td className="py-1 text-right font-semibold tabular-nums">{formatRupees(open.totalPaise)}</td>
               </tr>
             </tbody>
@@ -53,7 +54,7 @@ export function CitizenActions({ view, action }: { view: CaseView; action: NextA
         )}
         {!action && (
           <Link href={`/requests/${current.id}/pay`} className="btn w-fit">
-            Pay {open ? formatRupees(open.totalPaise) : "fee"}
+            {open ? fmt(t.citizen.pay, { amount: formatRupees(open.totalPaise) }) : t.citizen.payFee}
           </Link>
         )}
       </div>
@@ -67,7 +68,7 @@ export function CitizenActions({ view, action }: { view: CaseView; action: NextA
   if (window.state === "not_yet") {
     return window.opensAt ? (
       <p className="text-sm text-muted" data-testid="appeal-opens">
-        If there&apos;s no reply, you can file a first appeal from {formatDate(window.opensAt)}.
+        {fmt(t.citizen.appealOpens, { date: formatDate(window.opensAt) })}
       </p>
     ) : null;
   }
@@ -75,14 +76,12 @@ export function CitizenActions({ view, action }: { view: CaseView; action: NextA
     <div className="flex flex-wrap items-center gap-3">
       {!action && (
         <Link href={`/appeals/new/${current.id}`} className="btn">
-          File first appeal
+          {t.citizen.fileAppeal}
         </Link>
       )}
       <HelpTip topic="firstAppeal" />
       <span className="text-sm text-muted">
-        {window.state === "open"
-          ? `Open until ${formatDate(window.closesAt)}.`
-          : "The 30-day window has passed; you'll need to give a reason for the delay."}
+        {window.state === "open" ? fmt(t.citizen.openUntil, { date: formatDate(window.closesAt) }) : t.citizen.windowPassed}
       </span>
     </div>
   );
