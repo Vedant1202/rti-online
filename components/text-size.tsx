@@ -18,7 +18,8 @@ export function TextSizeControl({ initial }: { initial: TextSize }) {
           key={s}
           type="button"
           aria-pressed={size === s}
-          aria-label={label[s]}
+          // The visible glyph is part of the name too (WCAG 2.5.3, label in name).
+          aria-label={`${label[s]} (${GLYPH[s]})`}
           title={label[s]}
           className="min-h-8 min-w-8 rounded px-1.5 text-xs font-semibold leading-none hover:bg-white/15 aria-pressed:bg-bar-ink aria-pressed:text-bar"
           onClick={() => {
