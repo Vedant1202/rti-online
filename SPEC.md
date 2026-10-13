@@ -330,7 +330,7 @@ Plan: [tasks/plan-v2.md](tasks/plan-v2.md). Workflow for this project: commit an
 
 ## Version 3: Redesign (October 2026)
 
-Plan: [tasks/plan.md](tasks/plan.md). Status: **Built and deployed (October 2026).** Workflow: commit and push directly to `main`. Evidence: [docs/redesign](docs/redesign/README.md).
+Plan: [tasks/plan-v3.md](tasks/plan-v3.md). Status: **Built and deployed (October 2026).** Workflow: commit and push directly to `main`. Evidence: [docs/redesign](docs/redesign/README.md).
 
 ### Objective
 
@@ -476,3 +476,104 @@ docs/redesign/             → before/after screenshots and click counts
 - **Direct checkout fallback:** if starting the checkout fails after the request is created, the citizen lands on the request's pay page. A retry reuses the same request.
 - **Loader test:** on phones the Reply times link is below the fold, and Next.js prefetches a link's loading skeleton only once the link is on screen. The test now scrolls to the link and waits for the prefetch.
 - **Results:** Lighthouse accessibility is 100 on the home, filing and case pages, in light and dark, at 100% and 125% text, in English and Hindi. The run has 101 Playwright tests and 226 unit and integration tests.
+
+## Version 4: Visual polish (October 2026)
+
+Plan: [tasks/plan.md](tasks/plan.md). Status: **Draft, awaiting sign-off.** Workflow: commit and push directly to `main`.
+
+### Objective
+
+Feedback on v3: the site looks too plain. Archita said the style is bland. The brief gives 25 of the marks for design and wants a revamp that doesn't look like the existing portal. v3 fixed the flows. v4 makes the site **attractive** without changing what it does: a confident brand, colour used with purpose, depth, pictures and gentle motion, while keeping v3's accessibility, Hindi and phone support.
+
+Direction, chosen by Claude as the user asked: **"Bright civic"**.
+- Deep indigo-to-violet gradients with a warm saffron glow.
+- Headings in Poppins, a modern geometric display font that also covers Devanagari.
+- Soft layered cards.
+- Coloured icon tiles.
+- Custom illustrations.
+- Small, calm animations.
+
+It should feel like a well-made consumer app for a public service: friendly and trustworthy, not like an old government site.
+
+### Assumptions
+
+1. Features, flows, routes, data and tests stay as they are. Only presentation changes, plus a few new decorative or summary elements.
+2. No new runtime dependencies. Poppins comes through `next/font`, animations are CSS-only, and illustrations are inline SVG or styled HTML written for this project, with no third-party image assets and no licence questions.
+3. The v3 rules still hold: no emblem or official branding, the student-project notice stays, AA contrast in light and dark, Hindi everywhere citizens see text, works at 375px and at 125% text size.
+4. Officer pages pick up the shared styles (cards, buttons, type) automatically. They get no page-by-page redesign.
+5. Any new text goes into both `en.ts` and `hi.ts`; the typecheck enforces this.
+
+### Decisions (answered by default)
+
+1. **Brand and colour**
+   - **Primary:** indigo stays (`#4a2bc2`).
+   - **Gradient:** a deep gradient for hero and banner areas, `#2a1475` → `#4a2bc2` → `#7c3aed`, with a soft saffron radial glow behind it purely as decoration.
+   - **Icon tiles:** four tones, each a soft background with a strong foreground, light and dark.
+
+     | Tone | Light (background / foreground) | Dark (background / foreground) |
+     |---|---|---|
+     | Indigo | `#efeaff` / `#4a2bc2` | `#2a2350` / `#b9a8ff` |
+     | Saffron | `#fff1dc` / `#8f5b00` | `#3a2a12` / `#ffbe6f` |
+     | Teal | `#dff5f1` / `#0f6b5c` | `#12332e` / `#5fd4be` |
+     | Rose | `#ffe6ee` / `#a3174f` | `#3a1626` / `#ff8fb3` |
+
+   - **Contrast:** white text on every gradient stop passes AA (lowest is about 5.7:1 on `#7c3aed`).
+2. **Type**
+   - Poppins 600/700 for headings (h1–h3, hero, big numbers); Noto Sans stays for body text.
+   - Hero headline 60px on desktop and 38px on phones, with tighter letter spacing.
+3. **Shape and depth**
+   - Cards get 16px corners and a layered soft shadow (tokens `--shadow-sm/md/lg`), and lift 2px on hover.
+   - Primary buttons get the indigo-to-violet gradient with a soft coloured shadow.
+   - The header becomes sticky, with a light blur behind it.
+4. **Visitor home page**
+   - A full-width gradient hero: eyebrow, Poppins headline, short lead, and two buttons (white primary, outlined secondary).
+   - On the right, a decorative **product preview card** built from HTML: a sample request with its stepper, days-left ring and a "Reply received" note. It's `aria-hidden` and has no image file.
+   - Below that:
+     - "Why it's better": 4 feature cards with coloured icon tiles (AI rewrite, instant number, timeline, Hindi).
+     - "How it works": 4 numbered steps joined by a line.
+     - The Reply times teaser.
+5. **Citizen home page:** a gradient welcome band showing counts for "needs your action" and "in progress", and action cards with coloured icon tiles in place of the plain saffron border.
+6. **Case page**
+   - **Days left:** a circular ring (SVG, with an accessible label and value) replaces the flat bar.
+   - **Stepper:** the done part of the line fills with the gradient.
+   - **After filing:** a celebration panel with the registration number in a large card and a short confetti burst made in CSS. With reduced motion, it's still and has no confetti.
+7. **Sign-in page:** split layout on desktop. The left side is a gradient brand panel with three reasons to sign in; the form is on the right. Phones get a compact gradient header above the form.
+8. **Reply times page:** coloured horizontal bars (green under 30 days, red over, with words, not colour alone), cards on phones, and a short legend.
+9. **Filing:** step pills become a progress bar with the step names. The template and Popular chips get icon tiles, and the selected authority sits on a tinted card.
+10. **Phone tab bar and footer**
+    - The active tab gets a filled pill behind its icon.
+    - The footer grows a brand line, page links and the notice, on a tinted background.
+11. **Illustrations:** small inline SVGs drawn for this project, for "How it works", empty states (no requests yet, nothing needs your attention) and the sign-in brand panel. Colours come from tokens, so they work in dark mode.
+12. **Motion**
+    - Sections fade up as the page loads (staggered, 300–450 ms).
+    - Hover lift on cards and buttons, and the ring and stepper animate as they fill.
+    - The existing reduced-motion rule turns all of it off.
+13. **Materials refreshed afterwards:**
+    - Retake the `docs/redesign` screenshots, plus new feature shots kept in the repo so Google Slides can load them from public URLs.
+    - Replace the images in the slide-deck artifact and in the Google Slides deck (via the connector's image-replace request).
+    - Rebuild both PDFs.
+
+### Success criteria
+
+1. **Visitor home page:**
+   - Gradient hero with a Poppins headline (60px desktop, 38px phone), two buttons and the decorative preview card (hidden from screen readers).
+   - A "Why it's better" section with 4 feature cards and coloured tiles, and a "How it works" section with 4 steps and illustrations.
+2. **Citizen home page:** a gradient welcome band with correct counts, and action cards with tiles. Existing home e2e tests pass unchanged.
+3. **Case page:** the days-left ring shows the right value, with role, label and value text for screen readers. The stepper fills with the gradient. The celebration panel appears after filing (`?paid=1` or `?filed=1`) and has no animation under reduced motion.
+4. **Throughout:** 16px cards with shadow tokens and hover lift, gradient primary buttons, a sticky blurred header, the tab bar's active pill, and the new footer, in both themes.
+5. **Sign-in page:** split brand layout on desktop and a compact one on phones. Login e2e passes unchanged.
+6. **Reply times page:** coloured bars that also show their state in words; nothing scrolls sideways at 375px.
+7. **Accessibility:**
+   - axe-core finds no serious or critical issues in light, dark and Hindi.
+   - Lighthouse accessibility is at least 95 (target 100) on home, filing and case pages.
+   - The token test is extended to the tile pairs and to white on each gradient stop.
+8. **Reduced motion:** no element animates. A new e2e test checks that animation names compute to `none` when reduced motion is emulated.
+9. **Phones and Hindi:** at 375px and at 125% text, in English and Hindi, nothing scrolls sideways and the header stays one row (existing tests).
+10. **Quality:** no new runtime dependency, all existing unit, integration and e2e tests pass, and every new string is in both `en.ts` and `hi.ts`.
+11. **Materials:** `docs/redesign` screenshots, the slide-deck artifact, the Google Slides images and both PDFs show the v4 look.
+
+### Boundaries (v4 additions)
+
+- **Always:** colours, gradients, shadows and radii come only from tokens in `globals.css`; decoration is `aria-hidden`; motion respects reduced motion; new text goes into both dictionaries.
+- **Ask first:** any new dependency (an animation or illustration library), changing flows or wording beyond new decorative or summary text, removing a page element that tests rely on.
+- **Never:** third-party illustrations or stock photos of unclear licence, an emblem or official branding, colour as the only signal, or a change that breaks the 375px or 125% layouts.
