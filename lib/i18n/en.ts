@@ -506,6 +506,13 @@ export const en = {
     overdue: "Overdue",
     noReplies: "No replies yet",
     days: "{n} days",
+    within: "within the limit",
+    over: "over the limit",
+    overduePill: "{n}% overdue",
+    legend: "Bars show the typical (median) reply time. The RTI Act allows 30 days: purple is within the limit, red is over it.",
+    sumAuthorities: "Authorities",
+    sumRequests: "Requests in 90 days",
+    sumAnswered: "Answered",
   },
   footer: {
     tagline: "A student redesign of India's portal for Right to Information requests.",
