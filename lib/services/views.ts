@@ -5,6 +5,7 @@ import { caseClocks } from "@/lib/rti/case-clock";
 import { notFound } from "@/lib/http";
 import type { User } from "@/lib/auth/rbac";
 import { assertCanView, canView } from "./access";
+import { nextAction, type NextAction } from "@/lib/next-action";
 
 type Req = typeof requests.$inferSelect;
 
@@ -129,8 +130,34 @@ export async function listCitizenRequests(user: User, now: Date) {
   for (const root of roots) {
     const chain = await transferChain(root);
     const current = chain.at(-1)!;
-    const inputs = await loadClockInputs([current.id]);
+    const ids = chain.map((r) => r.id);
+    const parts = await db
+      .select()
+      .from(requests)
+      .where(and(inArray(requests.parentId, ids), eq(requests.kind, "R")))
+      .orderBy(asc(requests.regNo));
+    const appeals = await db
+      .select({ parentId: requests.parentId })
+      .from(requests)
+      .where(and(inArray(requests.parentId, [...ids, ...parts.map((p) => p.id)]), eq(requests.kind, "A")));
+    const inputs = await loadClockInputs([current.id, ...parts.map((p) => p.id)]);
     const [authority] = await db.select().from(authorities).where(eq(authorities.id, current.authorityId));
+
+    // A split request's next steps come from its parts, in part order (/1, /2, …).
+    const actions = (parts.length ? parts : [current])
+      .map((r) =>
+        nextAction({
+          id: r.id,
+          status: r.status,
+          bpl: r.bpl,
+          openFeePaise: inputs.demands.find((d) => d.requestId === r.id && !d.paidAt)?.totalPaise ?? null,
+          appeal: clocksFor(r, inputs, now).appeal,
+          appealed: appeals.some((a) => a.parentId === r.id || (parts.length === 0 && ids.includes(a.parentId!))),
+          hasParts: false,
+        }),
+      )
+      .filter((a): a is NextAction => a !== null);
+
     out.push({
       id: root.id,
       regNo: current.regNo ?? root.regNo,
@@ -139,6 +166,7 @@ export async function listCitizenRequests(user: User, now: Date) {
       status: current.status,
       createdAt: root.createdAt,
       reply: clocksFor(current, inputs, now).reply,
+      actions,
     });
   }
   return out;

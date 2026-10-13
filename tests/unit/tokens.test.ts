@@ -53,6 +53,7 @@ describe("UX4G design tokens", () => {
         ["warn", "surface"],
         ["ok", "surface"],
         ["saffron", "surface"],
+        ["saffron", "paper"],
         ["bar-ink", "bar"],
       ])("%s on %s meets WCAG AA for text (4.5:1)", (fg, bg) => {
         expect(t[fg], `--${fg}`).toBeDefined();

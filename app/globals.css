@@ -14,7 +14,7 @@
   --field: #8a8a8a;
   --accent: #4a2bc2;
   --accent-ink: #ffffff;
-  --saffron: #a46800;
+  --saffron: #8f5b00; /* between UX4G secondary-600 and -700, for AA on tinted backgrounds */
   --danger: #b3251e;
   --warn: #ad4e00;
   --ok: #006600;

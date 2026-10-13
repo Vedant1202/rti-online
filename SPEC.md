@@ -361,7 +361,7 @@ What the audit of rtionline.gov.in found (October 2026):
    - UX4G's top "Government of India" strip becomes a utility bar reading "Student rebuild · not an official website", with the text-size and language controls.
 2. **Palette:** UX4G 3.0 tokens, adapted for dark mode. Every text pair must pass WCAG AA (4.5:1). Form-field borders must reach 3:1.
    - Light: paper `#fafafa`, surface `#ffffff`, ink `#171717`, muted `#525252`, line `#e5e5e5`.
-   - Light: field border `#8a8a8a`, accent (primary-600) `#4a2bc2` with white text, saffron `#a46800`, ok `#006600`, warn `#ad4e00`, danger `#b3251e`.
+   - Light: field border `#8a8a8a`, accent (primary-600) `#4a2bc2` with white text, saffron `#8f5b00`, ok `#006600`, warn `#ad4e00`, danger `#b3251e`.
    - Dark: paper `#0f0e17`, surface `#1a1825`, ink `#f5f5f5`, muted `#a3a3a3`, line `#2e2b3d`, field border `#6f6a85`.
    - Dark: accent (primary-300) `#a391ff` with text `#1a0e3d`, ok `#66cc66`, warn `#ffc973`, danger `#ffb3ae`.
    - Utility bar: indigo `#1a0e3d` with a 3px tricolour strip (`#ff9933` / `#ffffff` / `#138808`) under it.
