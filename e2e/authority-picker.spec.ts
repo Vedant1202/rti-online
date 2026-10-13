@@ -7,7 +7,6 @@ async function toPicker(page: Page, body = "Please give me the records I asked f
   await page.goto("/requests/new");
   await page.getByLabel("Subject").fill("Records");
   await page.getByLabel("What information do you want?").fill(body);
-  await page.getByRole("button", { name: "Continue" }).click();
 }
 
 test("a Popular chip picks its authority in one click", async ({ page }) => {

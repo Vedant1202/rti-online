@@ -61,11 +61,9 @@ export async function startCheckoutViaUi(page: Page, opts: FileOpts) {
   await page.goto("/requests/new");
   await page.getByLabel("Subject").fill(opts.subject);
   await page.getByLabel("What information do you want?").fill(opts.body);
-  await page.getByRole("button", { name: "Continue" }).click();
   await chooseAuthority(page, opts.authority);
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await page.getByRole("button", { name: /^Pay ₹/ }).click();
+  await page.getByRole("button", { name: "Pay ₹10 and file" }).click();
   await page.waitForURL(/\/pay\//);
 }
 

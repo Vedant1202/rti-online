@@ -6,11 +6,9 @@ async function startCheckout(page: Page, subject: string) {
   await page.goto("/requests/new");
   await page.getByLabel("Subject").fill(subject);
   await page.getByLabel("What information do you want?").fill("Status of refund for PNR 1234567890.");
-  await page.getByRole("button", { name: "Continue" }).click();
   await chooseAuthority(page, /Railways/);
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await page.getByRole("button", { name: "Pay ₹10" }).click();
+  await page.getByRole("button", { name: "Pay ₹10 and file" }).click();
   await expect(page.getByRole("heading", { name: "Pay with card" })).toBeVisible();
 }
 

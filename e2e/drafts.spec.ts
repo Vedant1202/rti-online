@@ -28,5 +28,7 @@ test("a template's placeholders must be filled before continuing", async ({ brow
     .replace("[date]", "1 July 2026");
   await body.fill(text);
   await expect(page.getByTestId("placeholders")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Continue" })).toBeDisabled(); // no authority yet
+  await page.getByTestId("suggestions").getByRole("button", { name: /Pension and Pensioners/ }).click();
   await expect(page.getByRole("button", { name: "Continue" })).toBeEnabled();
 });

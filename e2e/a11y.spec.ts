@@ -28,16 +28,12 @@ for (const theme of ["light", "dark"] as const) {
       await scan(page, `${theme} wizard step 1`);
       await page.getByLabel("Subject").fill("Ticket refund");
       await page.getByLabel("What information do you want?").fill("Refund status for PNR 1234567890.");
-      await page.getByRole("button", { name: "Continue" }).click();
-      await scan(page, `${theme} wizard step 2`);
       await page.getByRole("button", { name: /Browse all/ }).click();
-      await scan(page, `${theme} wizard step 2, full list`);
+      await scan(page, `${theme} wizard step 1, full list`);
       await page.getByRole("radio", { name: /Railways/ }).check();
       await page.getByRole("button", { name: "Continue" }).click();
-      await scan(page, `${theme} wizard step 3`);
-      await page.getByRole("button", { name: "Continue to payment" }).click();
-      await scan(page, `${theme} pay page`);
-      await page.getByRole("button", { name: "Pay ₹10" }).click();
+      await scan(page, `${theme} wizard step 2`);
+      await page.getByRole("button", { name: "Pay ₹10 and file" }).click();
       await expect(page.getByRole("heading", { name: "Pay with card" })).toBeVisible();
       await scan(page, `${theme} checkout`);
       await page.getByRole("button", { name: /Visa ending in 4242/ }).click();
@@ -72,8 +68,6 @@ test("keyboard only: file → pay → see the timeline", async ({ page }, info) 
   await page.keyboard.type("Keyboard request");
   await tabTo("What information do you want?", "textbox");
   await page.keyboard.type("Refund status for PNR 1234567890.");
-  await tabTo("Continue");
-  await page.keyboard.press("Enter");
   await tabTo(/Browse all/);
   await page.keyboard.press("Enter");
   // Tab enters the radio group once; arrow keys move between options (native behaviour).
@@ -85,9 +79,7 @@ test("keyboard only: file → pay → see the timeline", async ({ page }, info) 
   await expect(railways).toBeChecked();
   await tabTo("Continue");
   await page.keyboard.press("Enter");
-  await tabTo("Continue to payment");
-  await page.keyboard.press("Enter");
-  await tabTo("Pay ₹10");
+  await tabTo("Pay ₹10 and file");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Pay with card" })).toBeVisible();
   await tabTo(/Visa ending in 4242/);

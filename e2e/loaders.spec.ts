@@ -1,14 +1,19 @@
 import { test, expect } from "@playwright/test";
 
 test("a slow page with a skeleton shows it instantly, then the page", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForLoadState("networkidle"); // let Next prefetch the loading skeleton
   // Delay the page's data (not the prefetch), as on a slow network.
+  let prefetched = false;
   await page.route("**/stats**", async (route) => {
-    if (!route.request().headers()["next-router-prefetch"]) await new Promise((r) => setTimeout(r, 1500));
+    if (route.request().headers()["next-router-prefetch"]) prefetched = true;
+    else await new Promise((r) => setTimeout(r, 1500));
     await route.continue();
   });
-  await page.getByRole("link", { name: /how fast each ministry answers/i }).click();
+  await page.goto("/");
+  // Next prefetches a link's loading skeleton once the link is on screen (below the fold on phones).
+  const link = page.getByRole("link", { name: /how fast each ministry answers/i });
+  await link.scrollIntoViewIfNeeded();
+  await expect.poll(() => prefetched).toBe(true);
+  await link.click();
   await expect(page.getByTestId("page-skeleton")).toBeVisible();
   await expect(page.getByRole("heading", { name: "How fast ministries reply" })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByTestId("page-skeleton")).toBeHidden();
