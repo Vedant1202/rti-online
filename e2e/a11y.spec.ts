@@ -3,6 +3,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { as, officer } from "./helpers";
 
 async function scan(page: Page, label: string) {
+  // Measure the settled page: wait for entrance animations (opacity fades) to finish.
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => null))));
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   const summary = serious.map((v) => `${label}: ${v.id} (${v.impact}) ${v.help} → ${v.nodes.map((n) => `${n.target.join(" ")} ${n.any.map((a) => a.message).join(";")}`).slice(0, 3).join(" | ")}`);

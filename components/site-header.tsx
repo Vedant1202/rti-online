@@ -28,12 +28,17 @@ function SkipLink({ t }: { t: Dict }) {
 
 function Brand({ t }: { t: Dict }) {
   return (
-    <Link href="/" className="inline-flex items-center gap-2 text-lg font-bold">
-      <Landmark size={22} aria-hidden="true" className="text-accent" />
-      {t.nav.brand} <span className="font-normal text-muted">{t.nav.brandTag}</span>
+    <Link href="/" className="inline-flex items-center gap-2.5 font-display text-lg font-bold">
+      <span aria-hidden="true" className="bg-brand inline-grid size-8 place-items-center rounded-lg text-hero-ink shadow-sm">
+        <Landmark size={18} />
+      </span>
+      {t.nav.brand} <span className="font-sans font-normal text-muted">{t.nav.brandTag}</span>
     </Link>
   );
 }
+
+/** The header row sticks to the top while scrolling, over a light blur. */
+const HEADER = "sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur-md";
 
 /**
  * Skip link, utility bar and one header row. Rendered inside Suspense because it reads cookies;
@@ -50,9 +55,9 @@ export async function SiteHeader() {
   return (
     <LangProvider lang={lang}>
       <SkipLink t={t} />
-      <header className="bg-surface">
-        <UtilityBar t={t} theme={theme} textSize={textSize} />
-        <div className="border-b border-line">
+      <UtilityBar t={t} theme={theme} textSize={textSize} />
+      <header className={HEADER}>
+        <div>
           <div
             data-testid="header-row"
             className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2 md:py-3"
@@ -106,9 +111,9 @@ export function HeaderPlaceholder() {
   return (
     <>
       <SkipLink t={en} />
-      <header className="bg-surface">
-        <UtilityBarPlaceholder t={en} />
-        <div className="border-b border-line">
+      <UtilityBarPlaceholder t={en} />
+      <header className={HEADER}>
+        <div>
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2 md:py-3">
             <Brand t={en} />
             <div className="skeleton h-11 w-28 md:h-10" aria-hidden="true" />

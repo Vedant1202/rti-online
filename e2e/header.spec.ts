@@ -37,3 +37,22 @@ test("signed-in citizens see their links in the header on desktop", async ({ bro
   await page.goto("/help");
   await expect(nav.getByRole("link", { name: "Help" })).toHaveAttribute("aria-current", "page");
 });
+
+test("the header row stays on screen while you scroll", async ({ page }) => {
+  await page.goto("/help");
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(100);
+  const box = (await page.getByTestId("header-row").boundingBox())!;
+  expect(box.y).toBeGreaterThanOrEqual(-1);
+  expect(box.y).toBeLessThan(8);
+});
+
+test("the footer has the brand, page links and the student-project notice", async ({ page }) => {
+  await page.goto("/");
+  const footer = page.getByRole("contentinfo");
+  const links = footer.getByRole("navigation", { name: "Footer" });
+  for (const name of ["Home", "File a request", "Reply times", "Help"]) {
+    await expect(links.getByRole("link", { name, exact: true })).toBeVisible();
+  }
+  await expect(footer.getByTestId("disclaimer")).toContainText("Not affiliated");
+});

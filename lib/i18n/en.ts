@@ -484,6 +484,8 @@ export const en = {
     days: "{n} days",
   },
   footer: {
+    tagline: "A student redesign of India's portal for Right to Information requests.",
+    nav: "Footer",
     disclaimer:
       "Student project. Not affiliated with DoPT or the Government of India. Do not enter real personal information.",
     help: "Help",

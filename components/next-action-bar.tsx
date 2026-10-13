@@ -15,7 +15,7 @@ export function NextActionBar({ action, t }: { action: NextAction; t: Dict }) {
     <section
       aria-label={t.case.nextStep}
       data-testid="next-action"
-      className="next-action-bar fixed inset-x-0 bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] z-30 border-t-2 border-saffron bg-surface px-4 py-3 shadow-[0_-4px_12px_rgb(0_0_0/0.08)] md:sticky md:top-2 md:bottom-auto md:rounded-lg md:border md:border-l-4 md:border-line md:border-l-saffron md:shadow-sm"
+      className="next-action-bar fixed inset-x-0 bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] z-30 border-t-2 border-saffron bg-surface px-4 py-3 shadow-[0_-4px_12px_rgb(0_0_0/0.08)] md:sticky md:top-20 md:bottom-auto md:rounded-lg md:border md:border-l-4 md:border-line md:border-l-saffron md:shadow-sm"
     >
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">

@@ -73,6 +73,7 @@ test("Hindi pages have no serious accessibility issues", async ({ browser }, inf
   await page.context().addCookies([{ name: "rti_lang", value: "hi", url: BASE_URL }]);
   for (const path of ["/", "/requests/new", "/help"]) {
     await page.goto(path);
+    await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => null))));
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
     expect(serious.map((v) => `${path}: ${v.id} ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);

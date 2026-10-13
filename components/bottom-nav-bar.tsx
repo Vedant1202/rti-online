@@ -6,7 +6,10 @@ import { useT } from "@/lib/i18n/client";
 import { NavLink } from "./nav-link";
 
 const TAB =
-  "relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs text-muted aria-[current=page]:font-semibold aria-[current=page]:text-accent aria-[current=page]:before:absolute aria-[current=page]:before:inset-x-6 aria-[current=page]:before:top-0 aria-[current=page]:before:h-0.5 aria-[current=page]:before:rounded-full aria-[current=page]:before:bg-accent";
+  "group flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs text-muted aria-[current=page]:font-semibold aria-[current=page]:text-accent";
+/** The active tab shows a filled pill behind its icon. */
+const PILL =
+  "grid h-7 w-14 place-items-center rounded-full transition-colors group-aria-[current=page]:bg-tile-indigo-bg group-aria-[current=page]:text-tile-indigo-fg";
 
 /** Thumb-reach navigation for phones. Hidden from 768px up, and on the card checkout. */
 export function BottomNavBar() {
@@ -16,27 +19,39 @@ export function BottomNavBar() {
   return (
     <nav
       aria-label={t.nav.quick}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       <ul className="mx-auto grid max-w-md grid-cols-4">
         <li>
           <NavLink href="/" exact className={TAB}>
-            <Home size={22} aria-hidden="true" /> {t.nav.home}
+            <span data-tab-pill className={PILL}>
+              <Home size={20} aria-hidden="true" />
+            </span>
+            {t.nav.home}
           </NavLink>
         </li>
         <li>
           <NavLink href="/requests/new" exact className={TAB}>
-            <FilePlus2 size={22} aria-hidden="true" /> {t.nav.fileShort}
+            <span data-tab-pill className={PILL}>
+              <FilePlus2 size={20} aria-hidden="true" />
+            </span>
+            {t.nav.fileShort}
           </NavLink>
         </li>
         <li>
           <NavLink href="/requests" exact className={TAB}>
-            <ListChecks size={22} aria-hidden="true" /> {t.nav.myRequests}
+            <span data-tab-pill className={PILL}>
+              <ListChecks size={20} aria-hidden="true" />
+            </span>
+            {t.nav.myRequests}
           </NavLink>
         </li>
         <li>
           <NavLink href="/help" className={TAB}>
-            <HelpCircle size={22} aria-hidden="true" /> {t.nav.help}
+            <span data-tab-pill className={PILL}>
+              <HelpCircle size={20} aria-hidden="true" />
+            </span>
+            {t.nav.help}
           </NavLink>
         </li>
       </ul>

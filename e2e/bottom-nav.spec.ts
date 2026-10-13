@@ -17,6 +17,11 @@ test.describe("on a phone", () => {
       expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
     await expect(bar.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    // The active tab shows a filled pill behind its icon; the others don't.
+    const pillBg = (name: string) =>
+      bar.getByRole("link", { name }).locator("[data-tab-pill]").evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(await pillBg("Home")).not.toBe("rgba(0, 0, 0, 0)");
+    expect(await pillBg("Help")).toBe("rgba(0, 0, 0, 0)");
     await bar.getByRole("link", { name: "Help" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Help" })).toBeVisible();
     await expect(tabBar(page).getByRole("link", { name: "Help" })).toHaveAttribute("aria-current", "page");

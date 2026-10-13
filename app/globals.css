@@ -274,6 +274,20 @@ a.card:hover {
   animation: spin 0.7s linear infinite;
 }
 
+/* Brand gradient (logo mark, small badges) and the hero gradient with its warm saffron glow. */
+.bg-brand {
+  background-color: var(--grad-2);
+  background-image: linear-gradient(135deg, var(--grad-2), var(--grad-3));
+}
+.bg-hero {
+  background-color: var(--grad-1);
+  background-image:
+    radial-gradient(60% 80% at 88% 10%, rgb(255 153 51 / 0.28), transparent 60%),
+    radial-gradient(50% 70% at 0% 100%, rgb(124 58 237 / 0.45), transparent 60%),
+    linear-gradient(135deg, var(--grad-1), var(--grad-2) 55%, var(--grad-3));
+  color: var(--hero-ink);
+}
+
 /* Tricolour hairline under the utility bar. */
 .tricolour {
   height: 3px;

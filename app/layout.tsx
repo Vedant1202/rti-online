@@ -55,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main
             id="main"
             tabIndex={-1}
-            className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 outline-none"
+            className="mx-auto w-full max-w-5xl flex-1 scroll-mt-24 px-4 py-8 outline-none"
           >
             {children}
           </main>
