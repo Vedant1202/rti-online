@@ -84,6 +84,15 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* Text size (A− / A / A+), set on <html> by the pre-paint script. Everything is in rem, so it all
+   scales. Values match TEXT_SCALE in lib/prefs.ts. */
+html[data-text="sm"] {
+  font-size: 87.5%;
+}
+html[data-text="lg"] {
+  font-size: 125%;
+}
+
 body {
   background: var(--paper);
   color: var(--ink);

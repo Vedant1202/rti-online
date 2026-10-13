@@ -42,7 +42,7 @@ export function PdfUpload({
           id={id}
           type="file"
           accept="application/pdf"
-          className="text-sm"
+          className="w-full min-w-0 max-w-full text-sm file:mr-3 file:rounded-md file:border file:border-field file:bg-surface file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-ink"
           disabled={busy}
           onChange={async (e) => {
             const file = e.target.files?.[0];

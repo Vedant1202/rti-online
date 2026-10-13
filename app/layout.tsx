@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HeaderPlaceholder, SiteHeader } from "@/components/site-header";
-import { THEME_COOKIE } from "@/lib/theme";
+import { prefsScript } from "@/lib/prefs";
 import { Suspense } from "react";
 import { AnnouncerProvider } from "@/components/announcer";
 import { NavProgress } from "@/components/nav-progress";
@@ -25,10 +25,6 @@ export const metadata: Metadata = {
   description: "Student rebuild of the RTI Online portal: file, track and appeal RTI requests.",
 };
 
-// Applies the saved theme before the first paint (no flash), without the layout reading cookies on
-// the server, which would stop Next.js from showing loading screens instantly.
-const themeScript = `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=(light|dark)/);if(m)document.documentElement.dataset.theme=m[1]}catch(e){}})()`;
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -37,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${body.variable} ${deva.variable} h-full antialiased`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: prefsScript }} />
       </head>
       <body className="flex min-h-full flex-col font-sans">
         <a

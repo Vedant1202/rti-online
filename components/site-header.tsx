@@ -5,6 +5,8 @@ import { LogoutButton } from "./logout-button";
 import { ThemeToggle } from "./theme-toggle";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, parseTheme } from "@/lib/theme";
+import { TEXT_COOKIE, parseTextSize } from "@/lib/prefs";
+import { TextSizeControl } from "./text-size";
 
 const ROLE_LABEL = {
   citizen: "Citizen",
@@ -16,7 +18,9 @@ const ROLE_LABEL = {
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
-  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const jar = await cookies();
+  const theme = parseTheme(jar.get(THEME_COOKIE)?.value);
+  const textSize = parseTextSize(jar.get(TEXT_COOKIE)?.value);
   return (
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
@@ -42,6 +46,9 @@ export async function SiteHeader() {
           <Link href="/help" className="inline-flex items-center gap-1.5">
             <HelpCircle size={16} aria-hidden="true" /> Help
           </Link>
+          <span className="rounded-md bg-bar p-0.5 text-bar-ink">
+            <TextSizeControl initial={textSize} />
+          </span>
           <ThemeToggle initial={theme} />
           {user ? (
             <>
