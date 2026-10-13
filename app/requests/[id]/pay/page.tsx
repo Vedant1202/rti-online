@@ -36,37 +36,37 @@ export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
   }
 
   return (
-    <div className="grid max-w-xl gap-6">
-      <h1 className="text-2xl font-bold">
-        {req.status === "fee_requested" ? t.pay.titleAdditional : t.pay.titleFee}
-      </h1>
-      {failed && (
-        <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
-          {t.pay.failed}
-        </p>
-      )}
-      <div className="card grid gap-3">
-        <p className="text-sm text-muted">{authority.name}</p>
-        <p className="font-semibold">{req.subject}</p>
-        {items.length > 0 && (
-          <table className="w-full text-sm">
-            <tbody>
-              {items.map((i) => (
-                <tr key={i.label} className="border-b border-line">
-                  <td className="py-1">{i.label}</td>
-                  <td className="py-1 text-right tabular-nums">
-                    {i.quantity} × {formatRupees(i.unitPaise)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <LangProvider lang={lang}>
+      <div className="grid max-w-xl gap-6">
+        <h1 className="text-2xl font-bold">
+          {req.status === "fee_requested" ? t.pay.titleAdditional : t.pay.titleFee}
+        </h1>
+        {failed && (
+          <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+            {t.pay.failed}
+          </p>
         )}
-        <p className="flex items-center gap-1 text-3xl font-bold tabular-nums">
-          {formatRupees(amount)}{" "}
-          <HelpTip topic={req.status === "fee_requested" ? "pausedClock" : "fee"} />
-        </p>
-        <LangProvider lang={lang}>
+        <div className="card grid gap-3">
+          <p className="text-sm text-muted">{authority.name}</p>
+          <p className="font-semibold">{req.subject}</p>
+          {items.length > 0 && (
+            <table className="w-full text-sm">
+              <tbody>
+                {items.map((i) => (
+                  <tr key={i.label} className="border-b border-line">
+                    <td className="py-1">{i.label}</td>
+                    <td className="py-1 text-right tabular-nums">
+                      {i.quantity} × {formatRupees(i.unitPaise)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <p className="flex items-center gap-1 text-3xl font-bold tabular-nums">
+            {formatRupees(amount)}{" "}
+            <HelpTip topic={req.status === "fee_requested" ? "pausedClock" : "fee"} />
+          </p>
           <PayButton
             requestId={req.id}
             label={
@@ -75,8 +75,8 @@ export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
                 : fmt(t.pay.pay, { amount: formatRupees(amount) })
             }
           />
-        </LangProvider>
+        </div>
       </div>
-    </div>
+    </LangProvider>
   );
 }

@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { BarChart3, CheckCircle2, ChevronRight, Clock, FilePlus2, IndianRupee, ListChecks, PenLine, Scale } from "lucide-react";
+import {
+  BarChart3,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  FilePlus2,
+  IndianRupee,
+  ListChecks,
+  PenLine,
+  Scale,
+} from "lucide-react";
 import { InfoTip } from "@/components/info-tip";
 import { ActionList } from "@/components/action-list";
 import { Pill } from "@/components/pill";
@@ -8,47 +18,54 @@ import { getCurrentUser, homeFor } from "@/lib/auth/rbac";
 import { getNow } from "@/lib/clock";
 import { listCitizenRequests } from "@/lib/services/views";
 import { getDict } from "@/lib/i18n/server";
+import { LangProvider } from "@/lib/i18n/client";
 import { fmt, type Dict } from "@/lib/i18n";
 import { STATUS } from "@/lib/status";
 import type { User } from "@/lib/auth/rbac";
 
 export default async function Home() {
   const user = await getCurrentUser();
-  const { t } = await getDict();
+  const { lang, t } = await getDict();
   if (user?.role === "citizen") return <CitizenHome user={user} t={t} />;
   return (
-    <div className="grid gap-10">
-      {user && (
-        <p className="card flex flex-wrap items-center justify-between gap-3" role="note">
-          <span>{fmt(t.home.officerBanner, { role: t.nav.roles[user.role] })}</span>
-          <Link href={homeFor(user.role)} className="btn">
-            {t.home.openQueue} <ChevronRight size={16} aria-hidden="true" />
-          </Link>
-        </p>
-      )}
-      <Hero t={t} />
-      <HowItWorks t={t} />
-      <Link href="/stats" className="card flex items-center justify-between gap-3 hover:border-accent">
-        <span className="flex items-center gap-3">
-          <BarChart3 size={22} aria-hidden="true" className="text-accent" />
-          <span className="grid">
-            <span className="font-semibold">{t.home.statsTitle}</span>
-            <span className="text-sm text-muted">{t.home.statsText}</span>
+    <LangProvider lang={lang}>
+      <div className="grid gap-10">
+        {user && (
+          <p className="card flex flex-wrap items-center justify-between gap-3" role="note">
+            <span>{fmt(t.home.officerBanner, { role: t.nav.roles[user.role] })}</span>
+            <Link href={homeFor(user.role)} className="btn">
+              {t.home.openQueue} <ChevronRight size={16} aria-hidden="true" />
+            </Link>
+          </p>
+        )}
+        <Hero t={t} />
+        <HowItWorks t={t} />
+        <Link
+          href="/stats"
+          className="card flex items-center justify-between gap-3 hover:border-accent"
+        >
+          <span className="flex items-center gap-3">
+            <BarChart3 size={22} aria-hidden="true" className="text-accent" />
+            <span className="grid">
+              <span className="font-semibold">{t.home.statsTitle}</span>
+              <span className="text-sm text-muted">{t.home.statsText}</span>
+            </span>
           </span>
-        </span>
-        <ChevronRight size={18} aria-hidden="true" className="text-muted" />
-      </Link>
-    </div>
+          <ChevronRight size={18} aria-hidden="true" className="text-muted" />
+        </Link>
+      </div>
+    </LangProvider>
   );
 }
 
 function Hero({ t }: { t: Dict }) {
   return (
     <section className="grid gap-4">
-      <p className="w-fit rounded-full bg-saffron/10 px-3 py-1 text-xs font-semibold text-saffron">{t.home.eyebrow}</p>
+      <p className="w-fit rounded-full bg-saffron/10 px-3 py-1 text-xs font-semibold text-saffron">
+        {t.home.eyebrow}
+      </p>
       <h1 className="max-w-3xl text-3xl font-bold text-balance sm:text-4xl">
-        {t.home.title}{" "}
-        <InfoTip label={t.home.rtiLabel}>{t.home.rtiTip}</InfoTip>
+        {t.home.title} <InfoTip label={t.home.rtiLabel}>{t.home.rtiTip}</InfoTip>
       </h1>
       <p className="max-w-2xl text-muted">{t.home.lead}</p>
       <div className="flex flex-wrap gap-3">
@@ -80,7 +97,10 @@ function HowItWorks({ t }: { t: Dict }) {
         {steps.map(({ Icon, title, text }, i) => (
           <li key={title} className="card grid content-start gap-2">
             <span className="flex items-center gap-2">
-              <span className="grid size-8 place-items-center rounded-full bg-accent text-sm font-bold text-accent-ink" aria-hidden="true">
+              <span
+                className="grid size-8 place-items-center rounded-full bg-accent text-sm font-bold text-accent-ink"
+                aria-hidden="true"
+              >
                 {i + 1}
               </span>
               <Icon size={20} aria-hidden="true" className="text-accent" />
@@ -96,8 +116,12 @@ function HowItWorks({ t }: { t: Dict }) {
 
 async function CitizenHome({ user, t }: { user: User; t: Dict }) {
   const list = await listCitizenRequests(user, await getNow());
-  const actions = list.flatMap((r) => r.actions.map((action) => ({ action, subject: r.subject, regNo: r.regNo })));
-  const active = list.filter((r) => !["closed_unpaid", "appeal_decided"].includes(r.status)).slice(0, 5);
+  const actions = list.flatMap((r) =>
+    r.actions.map((action) => ({ action, subject: r.subject, regNo: r.regNo })),
+  );
+  const active = list
+    .filter((r) => !["closed_unpaid", "appeal_decided"].includes(r.status))
+    .slice(0, 5);
   return (
     <div className="grid gap-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -111,7 +135,10 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
         <h2 id="actions-heading" className="flex items-center gap-2 text-lg font-bold">
           {t.home.needsAction}
           {actions.length > 0 && (
-            <span className="rounded-full bg-saffron px-2 text-xs font-bold text-surface" aria-hidden="true">
+            <span
+              className="rounded-full bg-saffron px-2 text-xs font-bold text-surface"
+              aria-hidden="true"
+            >
               {actions.length}
             </span>
           )}
@@ -123,14 +150,20 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
             <CheckCircle2 size={22} aria-hidden="true" className="shrink-0 text-ok" />
             <div className="grid gap-0.5">
               <p className="font-semibold">{t.home.noActions}</p>
-              <p className="text-sm text-muted">{list.length ? t.home.noActionsText : t.home.noneText}</p>
+              <p className="text-sm text-muted">
+                {list.length ? t.home.noActionsText : t.home.noneText}
+              </p>
             </div>
           </div>
         )}
       </section>
 
       {active.length > 0 && (
-        <section className="grid gap-3" aria-labelledby="progress-heading" data-testid="in-progress">
+        <section
+          className="grid gap-3"
+          aria-labelledby="progress-heading"
+          data-testid="in-progress"
+        >
           <div className="flex items-center justify-between gap-3">
             <h2 id="progress-heading" className="text-lg font-bold">
               {t.home.inProgress}
@@ -142,7 +175,10 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
           <ul className="grid gap-2">
             {active.map((r) => (
               <li key={r.id}>
-                <Link href={`/requests/${r.id}`} className="card flex flex-wrap items-center justify-between gap-3 py-3 hover:border-accent">
+                <Link
+                  href={`/requests/${r.id}`}
+                  className="card flex flex-wrap items-center justify-between gap-3 py-3 hover:border-accent"
+                >
                   <span className="grid min-w-0 gap-0.5">
                     <span className="truncate font-semibold">{r.subject}</span>
                     <span className="truncate text-xs text-muted">{r.authority}</span>

@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Info } from "lucide-react";
+import { fmt } from "@/lib/i18n";
+import { useT } from "@/lib/i18n/client";
 
 /**
  * A small "i" button that reveals a plain-language explanation.
@@ -9,6 +11,7 @@ import { Info } from "lucide-react";
  */
 export function InfoTip({ label, children, align = "left" }: { label: string; children: React.ReactNode; align?: "left" | "right" }) {
   const [open, setOpen] = useState(false);
+  const { t } = useT();
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -38,7 +41,7 @@ export function InfoTip({ label, children, align = "left" }: { label: string; ch
         ref={button}
         type="button"
         className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted hover:text-accent"
-        aria-label={`More about ${label}`}
+        aria-label={fmt(t.help.moreAbout, { label })}
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
