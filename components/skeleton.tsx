@@ -1,10 +1,10 @@
+import { LoadingStatus } from "./loading-status";
+
 /** Placeholder blocks shown while a page loads. Screen readers hear "Loading…" once. */
 export function PageSkeleton({ rows = 4, title = true }: { rows?: number; title?: boolean }) {
   return (
     <div className="grid gap-4" aria-busy="true" data-testid="page-skeleton">
-      <span className="sr-only" role="status">
-        Loading…
-      </span>
+      <LoadingStatus />
       {title && <div className="skeleton h-8 w-2/3 max-w-md" />}
       <div className="skeleton h-4 w-1/2 max-w-sm" />
       <div className="grid gap-3">

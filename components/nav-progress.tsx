@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useDocumentDict } from "@/lib/i18n/client";
 
 /**
  * A thin bar at the top of the window while a link navigation is in flight.
@@ -11,6 +12,7 @@ export function NavProgress() {
   const pathname = usePathname();
   const search = useSearchParams();
   const [active, setActive] = useState(false);
+  const t = useDocumentDict();
 
   useEffect(() => {
     // The new page has rendered: hide the bar.
@@ -34,7 +36,7 @@ export function NavProgress() {
 
   if (!active) return null;
   return (
-    <div className="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-accent/20" data-testid="nav-progress" role="progressbar" aria-label="Loading page">
+    <div className="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-accent/20" data-testid="nav-progress" role="progressbar" aria-label={t.a11y.loadingPage}>
       <div className="nav-progress-bar h-full w-1/3 bg-accent" />
     </div>
   );

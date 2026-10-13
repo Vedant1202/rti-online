@@ -6,6 +6,9 @@
 export const en = {
   a11y: {
     skip: "Skip to content",
+    loading: "Loading…",
+    loadingPage: "Loading page",
+    done: "Done.",
   },
   bar: {
     notice: "Student rebuild · not an official website",
@@ -461,6 +464,18 @@ export const en = {
         body: "If the first appeal doesn't resolve it, you can appeal to the Central Information Commission within 90 days of the decision (section 19(3)).",
       },
     },
+  },
+  stats: {
+    title: "How fast ministries reply",
+    intro:
+      "Requests filed through this site in the last 90 days. The RTI Act allows 30 days (s.7(1)); days spent waiting for an additional fee don't count. No names or request text are shown.",
+    authority: "Authority",
+    requests: "Requests",
+    answered: "Answered",
+    median: "Median reply",
+    overdue: "Overdue",
+    noReplies: "No replies yet",
+    days: "{n} days",
   },
   footer: {
     disclaimer:

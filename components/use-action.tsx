@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { useAnnounce } from "./announcer";
+import { useT } from "@/lib/i18n/client";
 
 /** Posts JSON to an API route, then refreshes the server-rendered page. */
 export function useAction() {
@@ -11,11 +12,12 @@ export function useAction() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const announce = useAnnounce();
+  const { t } = useT();
   async function run(
     url: string,
     body: unknown,
     after?: (data: Record<string, unknown>) => void,
-    successMessage = "Done.",
+    successMessage = t.a11y.done,
   ) {
     setBusy(true);
     setError(null);
