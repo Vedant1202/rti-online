@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const LIGHT_PAPER = "rgb(244, 246, 249)";
-const DARK_PAPER = "rgb(15, 20, 32)";
+const LIGHT_PAPER = "rgb(250, 250, 250)"; // --paper #fafafa
+const DARK_PAPER = "rgb(15, 14, 23)"; // --paper #0f0e17
 const bodyBg = (page: Page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
 test.use({ colorScheme: "dark" });

@@ -4,19 +4,20 @@ import { THEME_COOKIE } from "@/lib/theme";
 import { Suspense } from "react";
 import { AnnouncerProvider } from "@/components/announcer";
 import { NavProgress } from "@/components/nav-progress";
-import { Atkinson_Hyperlegible, Noto_Sans_Devanagari } from "next/font/google";
+import { Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 
-const body = Atkinson_Hyperlegible({
+// UX4G's base type: Noto Sans, with Noto Sans Devanagari for Hindi.
+const body = Noto_Sans({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "600", "700"],
 });
 
 const deva = Noto_Sans_Devanagari({
   variable: "--font-deva",
   subsets: ["devanagari"],
-  weight: ["400", "700"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
