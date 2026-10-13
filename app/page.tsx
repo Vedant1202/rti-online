@@ -60,7 +60,7 @@ export default async function Home() {
 
 function Hero({ t }: { t: Dict }) {
   return (
-    <section className="grid gap-4">
+    <section className="rise grid gap-4">
       <p className="w-fit rounded-full bg-saffron/10 px-3 py-1 text-xs font-semibold text-saffron">
         {t.home.eyebrow}
       </p>
@@ -89,7 +89,7 @@ function HowItWorks({ t }: { t: Dict }) {
     { Icon: Scale, title: s.appealTitle, text: s.appealText },
   ];
   return (
-    <section className="grid gap-4" aria-labelledby="how-heading">
+    <section className="rise rise-2 grid gap-4" aria-labelledby="how-heading">
       <h2 id="how-heading" className="text-xl font-bold">
         {t.home.howItWorks}
       </h2>
