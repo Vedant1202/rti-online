@@ -22,15 +22,19 @@ export function CaseStepper({ status, appealStatus, t }: { status: RequestStatus
         return (
           <li key={stage} aria-current={current ? "step" : undefined} className="relative grid justify-items-center gap-1 text-center">
             {i > 0 && (
-              <span
-                aria-hidden="true"
-                className={`absolute right-1/2 top-4 h-0.5 w-full -translate-y-1/2 ${i <= index ? "bg-accent" : "bg-line"}`}
-              />
+              <span aria-hidden="true" className="absolute right-1/2 top-4 h-1 w-full -translate-y-1/2 rounded-full bg-line">
+                {i <= index && (
+                  <span
+                    className="bg-brand absolute inset-0 origin-left rounded-full"
+                    style={{ animation: `grow-x 420ms ease-out ${i * 90}ms both` }}
+                  />
+                )}
+              </span>
             )}
             <span
               aria-hidden="true"
               className={`relative z-10 grid size-8 place-items-center rounded-full border-2 text-sm font-bold ${
-                current ? CURRENT_TONE[tone] : done ? "border-accent bg-accent text-accent-ink" : "border-line bg-surface text-muted"
+                current ? CURRENT_TONE[tone] : done ? "bg-brand border-transparent text-hero-ink" : "border-line bg-surface text-muted"
               }`}
             >
               {done ? <Check size={16} /> : current && tone === "danger" ? <X size={16} /> : i + 1}

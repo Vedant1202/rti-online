@@ -12,6 +12,7 @@ import { HelpTip } from "@/components/help-tip";
 import { OfficerPanel } from "./officer-panel";
 import { CaseStepper } from "@/components/case-stepper";
 import { NextActionBar } from "@/components/next-action-bar";
+import { Celebration } from "@/components/celebration";
 import { nextAction } from "@/lib/next-action";
 import { getDict } from "@/lib/i18n/server";
 import { LangProvider } from "@/lib/i18n/client";
@@ -28,7 +29,6 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
   const isOwner = user.id === root.citizenId;
   // Officer pages stay in English; the citizen sees their chosen language.
   const { lang, t } = user.role === "citizen" ? await getDict() : { lang: "en" as const, t: en };
-  const [bannerBefore, bannerAfter] = t.case.filedBanner.split("{regNo}");
   const action = isOwner
     ? nextAction({
         id: current.id,
@@ -45,13 +45,7 @@ export default async function CasePage(props: PageProps<"/requests/[id]">) {
     <LangProvider lang={lang}>
       <div className="grid gap-6">
         {action && <NextActionBar action={action} t={t} />}
-        {(paid || filed) && current.regNo && (
-          <p role="status" className="rounded-md bg-ok/10 px-4 py-3 text-sm text-ok">
-            {bannerBefore}
-            <strong className="font-mono">{current.regNo}</strong>
-            {bannerAfter}
-          </p>
-        )}
+        {(paid || filed) && current.regNo && <Celebration regNo={current.regNo} t={t} />}
 
         <header className="grid gap-2">
           {view.parent && (

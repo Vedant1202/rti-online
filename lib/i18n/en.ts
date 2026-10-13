@@ -306,6 +306,10 @@ export const en = {
     nextStep: "Next step",
     daysLeftLabel: "Days left on the reply clock",
     daysLeftValue: "{n} of {total} days left",
+    daysLeftUnit: "days left",
+    celebrateTitle: "Your request is filed",
+    regNoLabel: "Registration number",
+    emailed: "We emailed you a copy. Keep this number for any follow-up.",
   },
   login: {
     title: "Sign in",

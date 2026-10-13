@@ -3,6 +3,7 @@ import { formatDate } from "@/lib/format";
 import { en } from "@/lib/i18n/en";
 import { fmt, plural, type Dict } from "@/lib/i18n";
 import { Pill } from "./pill";
+import { DaysLeftRing } from "./days-left-ring";
 
 const days = (n: number, t: Dict) => plural(n, t.clock.dayOne, t.clock.dayMany);
 
@@ -21,25 +22,6 @@ export function ClockBadge({ clock, t = en }: { clock: ReplyClock | null; t?: Di
   }
 }
 
-/** A bar showing how much of the reply period is left (30 days, or 2 for an accepted life-or-liberty claim). */
-function DaysLeftBar({ left, total, paused, label, valueText }: { left: number; total: number; paused: boolean; label: string; valueText: string }) {
-  const value = Math.max(0, Math.min(left, total));
-  const tone = paused || value <= 3 ? "bg-warn" : "bg-accent";
-  return (
-    <div
-      role="progressbar"
-      aria-label={label}
-      aria-valuemin={0}
-      aria-valuemax={total}
-      aria-valuenow={value}
-      aria-valuetext={valueText}
-      className="h-2 w-full overflow-hidden rounded-full bg-line"
-    >
-      <div className={`h-full rounded-full ${tone}`} style={{ width: `${(value / total) * 100}%` }} />
-    </div>
-  );
-}
-
 export function ClockSummary({ clock, totalDays, t = en }: { clock: ReplyClock | null; totalDays?: number; t?: Dict }) {
   if (!clock) return null;
   const text = {
@@ -50,17 +32,18 @@ export function ClockSummary({ clock, totalDays, t = en }: { clock: ReplyClock |
   }[clock.state];
   const left = clock.state === "running" ? clock.daysLeft : clock.state === "paused" ? clock.daysLeftWhenPaused : null;
   return (
-    <div className="grid gap-2">
-      <p className="text-sm">{text}</p>
+    <div className="flex items-center gap-5">
       {left !== null && totalDays && (
-        <DaysLeftBar
+        <DaysLeftRing
           left={left}
           total={totalDays}
           paused={clock.state === "paused"}
           label={t.case.daysLeftLabel}
           valueText={fmt(t.case.daysLeftValue, { n: left, total: totalDays })}
+          unit={t.case.daysLeftUnit}
         />
       )}
+      <p className="text-sm">{text}</p>
     </div>
   );
 }

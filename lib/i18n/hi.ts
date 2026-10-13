@@ -306,6 +306,10 @@ export const hi: Dict = {
     nextStep: "अगला कदम",
     daysLeftLabel: "जवाब की समय-सीमा में बचे दिन",
     daysLeftValue: "{total} में से {n} दिन बाकी",
+    daysLeftUnit: "दिन बाकी",
+    celebrateTitle: "आपका आवेदन दर्ज हो गया है",
+    regNoLabel: "पंजीकरण संख्या",
+    emailed: "हमने आपको इसकी एक प्रति ईमेल कर दी है। आगे के लिए यह संख्या संभालकर रखें।",
   },
   login: {
     title: "साइन इन करें",

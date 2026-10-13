@@ -5,7 +5,11 @@ const vp = (name: string) => (name === "mobile" ? { width: 375, height: 812 } : 
 
 test("the case page shows where the request is, and how many days are left", async ({ browser }, info) => {
   const page = await as(browser, `stepper-${Date.now()}@example.com`, vp(info.project.name));
-  await fileViaUi(page, { authority: /Railways/, subject: "Lift tender", body: "Copies of the lift tender for platform 3." });
+  const { regNo } = await fileViaUi(page, { authority: /Railways/, subject: "Lift tender", body: "Copies of the lift tender for platform 3." });
+  // Just filed: a celebration with the registration number.
+  const celebration = page.getByTestId("celebration");
+  await expect(celebration).toContainText("Your request is filed");
+  await expect(celebration).toContainText(regNo);
   const stepper = page.getByRole("list", { name: "Progress" });
   await expect(stepper.getByRole("listitem")).toHaveCount(5);
   const current = stepper.locator("[aria-current=step]");
