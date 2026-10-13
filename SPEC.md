@@ -320,10 +320,144 @@ Test rules:
 
 ## Version 2 (October 2026)
 
-Plan: [tasks/plan.md](tasks/plan.md). Workflow for this project: commit and push directly to `main`.
+Plan: [tasks/plan-v2.md](tasks/plan-v2.md). Workflow for this project: commit and push directly to `main`.
 
 - **Card checkout:** replaces the mock gateway page. Brand detection, Luhn, length, expiry and CVC checks run in the browser; two saved cards (Visa 4242…, Mastercard 4444…) fill the form; `4000 0000 0000 0002` is declined. The server accepts only `{brand, last4}` (strict schema) and stores them on the payment for the receipt. Nothing is charged. No Stripe name or logo; the site-wide student-project footer stays.
 - **Gemini AI:** server-only `@google/genai` (`GEMINI_API_KEY`, `GEMINI_MODEL`, default `gemini-flash-latest`), low thinking, 40 s timeout, 20 calls per user per hour (`ai_usage` table). "Rewrite formally" keeps the request's language and every number and `[placeholder]` (checked in code, one retry), as a preview with Undo. "Recommended" department picks only from seeded authority IDs, with keyword suggestions as the fallback.
 - **UI:** lucide icons, instant `loading.tsx` skeletons and a top progress bar (the root layout no longer reads cookies; theme is applied by a pre-paint script), busy states on buttons, info buttons and a `/help` page.
 - **Accessibility:** skip link, polite live region for action results, visible focus in both themes, reduced motion, axe-core scans with zero serious or critical issues in light and dark, keyboard-only filing path, Lighthouse accessibility 100 on the landing, filing and case pages.
 - **Schema:** `payments.card_brand`, `payments.card_last4` (migration 0001), `ai_usage` (migration 0002).
+
+## Version 3: Redesign (October 2026)
+
+Plan: [tasks/plan.md](tasks/plan.md). Status: **Draft, awaiting sign-off.** Workflow: commit and push directly to `main`.
+
+### Objective
+
+The course asks for a visual and UX redesign, not only a rebuild. v3 gives the app a government-standard look and cuts clicks on the citizen's most common jobs. It follows [UX4G 3.0](https://ux4g.gov.in/), the Government of India's design system from NeGD/MeitY. Users are citizens on phones first, then officers on desktops.
+
+What the audit of rtionline.gov.in found (October 2026):
+- **Phones:** no viewport tag, so a 375px phone shows the 980px desktop page shrunk down.
+- **Visual style:** gradient header, scrolling red text, blinking "new" GIFs, Calibri, unstyled buttons.
+- **Menu:** 11 equal items and no main action on the home page.
+- **Repeated checks:**
+  - View Status, View History and Payment Reconciliation each ask for email, a CAPTCHA and an OTP separately.
+  - A citizen login is also required.
+- **Rules page:** a 21-rule page with an "I have read" checkbox before every request and appeal.
+- **Authority list:** 2,925 public authorities with no search. That page also drops the site header.
+
+### Assumptions
+
+1. The redesign ships in the live app. It's built for real, not a mockup.
+2. No new runtime dependencies and no database schema changes. Fonts come through `next/font`. Text size and language are cookies, like the theme.
+3. Legal rules, deadlines, registration numbers and the payment flow don't change.
+4. Officer pages get the new look automatically through the shared tokens. Their layout stays desktop-first and English-only.
+5. The current tests stay. Where labels or steps change, the tests are updated in the same commit, never deleted.
+
+### Decisions (open questions, answered by default)
+
+1. **Official branding?** No. The existing Never rule stands: no Emblem of India, and no "Government of India" or "DoPT" branding.
+   - We borrow UX4G's style (colours, type, spacing, controls), not its identity.
+   - UX4G's top "Government of India" strip becomes a utility bar reading "Student rebuild · not an official website", with the text-size and language controls.
+2. **Palette:** UX4G 3.0 tokens, adapted for dark mode. Every text pair must pass WCAG AA (4.5:1). Form-field borders must reach 3:1.
+   - Light: paper `#fafafa`, surface `#ffffff`, ink `#171717`, muted `#525252`, line `#e5e5e5`.
+   - Light: field border `#8a8a8a`, accent (primary-600) `#4a2bc2` with white text, saffron `#a46800`, ok `#006600`, warn `#ad4e00`, danger `#b3251e`.
+   - Dark: paper `#0f0e17`, surface `#1a1825`, ink `#f5f5f5`, muted `#a3a3a3`, line `#2e2b3d`, field border `#6f6a85`.
+   - Dark: accent (primary-300) `#a391ff` with text `#1a0e3d`, ok `#66cc66`, warn `#ffc973`, danger `#ffb3ae`.
+   - Utility bar: indigo `#1a0e3d` with a 3px tricolour strip (`#ff9933` / `#ffffff` / `#138808`) under it.
+3. **Type:** Noto Sans plus Noto Sans Devanagari (UX4G's base), replacing Atkinson Hyperlegible.
+   - Corners: 8px on cards, 6px on buttons.
+   - Buttons: 600 weight, at least 44px tall on phones.
+4. **UX4G's CSS library?** Not used. It would add a second CSS framework on top of Tailwind. We recreate its tokens in `globals.css` instead.
+5. **Phone navigation:**
+   - Below 768px, citizens and signed-out visitors get a bottom tab bar: Home, File, My requests, Help.
+   - The header shrinks to one row: logo plus Sign in or the account button.
+   - The bar is hidden on checkout (`/pay/*`) and for officers.
+   - It respects the safe-area inset, and pages get enough bottom padding that nothing hides behind it.
+6. **Home page:**
+   - **Signed-out:** a UX4G-style hero with two buttons (File a request, Track my requests), and "How it works" in 4 icon steps (Write → Pay ₹10 → Reply in 30 days → Appeal if needed). This replaces the real site's flowchart image.
+   - **Signed-in citizens:**
+     - A "Needs your action" list built by one pure function, `nextAction()`: pay the fee, pay an additional fee, upload a requested document, or read a reply and appeal by a date.
+     - Under it, an "In progress" list with status and days left, and the File button.
+     - "Read the reply" shows while the appeal window is open. We don't track whether a reply was read, because that would need a schema change.
+   - **Officers:** see the public home with a banner linking to their queue.
+7. **Filing in 2 steps:**
+   - **Step 1, Write:** templates, subject, text, rewrite and attachment, with the authority picker under the text.
+   - **Step 2, Review and pay:** summary, the below-poverty-line and life-or-liberty options, and one button, "Pay ₹10 and file". It creates the request, starts the checkout and opens the card page directly.
+   - The `/requests/[id]/pay` page stays for additional fees and for resuming a payment later.
+   - The AI recommendation runs 1.5 s after typing stops, once the text has at least 8 words, and once per distinct text. That keeps it inside the 20-per-hour limit.
+8. **Case page:**
+   - A stepper: Filed → With officer → Reply → Appeal → Decided. Waiting states such as an additional fee or a requested document are marked "Waiting for you" on the officer step. A rejection shows on the Reply step in red.
+   - A bar showing days left on the reply clock.
+   - A sticky next-action bar for the owner: at the bottom on phones, above the tab bar; at the top of the page on desktop.
+   - The stage mapping is a pure function, `stageFor()`.
+9. **Authority picker:**
+   - Seed about 24 central authorities across 12 or more ministries, each with 4 officer accounts. The upsert is idempotent and runs on Neon after deploy.
+   - Six "Popular" chips select in one click: Railways, EPFO, Passport (MEA), Income Tax (CBDT), UIDAI, India Post.
+   - "Browse all" opens a list grouped by ministry. Search matches name, ministry and keywords, including Hindi keywords.
+10. **Text size:**
+    - A− / A / A+ sets the root font size to 87.5% / 100% / 125%.
+    - Stored in the `rti_text` cookie and applied before first paint by the same inline script as the theme.
+    - Browser zoom still works up to 200%.
+11. **English/हिन्दी:**
+    - A static typed dictionary in `lib/i18n/` (`en.ts` is the source; `hi.ts` must have the same type, so a missing key fails `tsc`). No runtime machine translation.
+    - Stored in the `rti_lang` cookie. Pages read it; the root layout never does, so loaders stay instant. `<html lang>` is set before paint by the inline script.
+    - In scope: utility bar, header, tab bar, footer, home, login, filing, My requests, case page, timeline, statuses, checkout, Help page and help tips.
+    - Out of scope: officer pages, emails and API error messages stay English.
+    - A Hindi-speaking teammate reviews the strings before the demo.
+12. **Before/after evidence:**
+    - `docs/redesign/` holds paired screenshots (real site vs ours) at desktop and 375px, plus a click-count table. These feed the report.
+    - Only public pages of the real site are captured. No forms are submitted and no agreements ticked. The real portal's filing form is shown through its guidelines page.
+
+### Click counts (citizen, typing not counted)
+
+| Job | rtionline.gov.in | Ours today | v3 target |
+|---|---|---|---|
+| File and pay (saved card) | menu → tick rules → Submit → long form → Submit → Make payment → gateway | 8 | 6 |
+| Check status | menu → reg no + email + CAPTCHA → OTP (every visit) | 2 | 0 (on home) |
+| Pay an additional fee | separate login, then find the request | 6 | 4 |
+| File a first appeal | menu → tick rules → reg no + email + CAPTCHA → OTP → form | 3 + form | 1 + form |
+
+### Project structure (new)
+
+```
+lib/next-action.ts         → nextAction(caseSummary, now): what the citizen should do next (pure)
+lib/progress.ts            → stageFor(status, …): stepper stage and tone (pure)
+lib/prefs.ts               → text-size and language cookies (theme stays in lib/theme.ts)
+lib/i18n/                  → en.ts (source), hi.ts, server.ts (getDict from cookie), client.tsx (LangProvider, useT)
+components/utility-bar.tsx → unofficial notice, text size, language, theme
+components/bottom-nav.tsx  → phone tab bar
+components/case-stepper.tsx, next-action-bar.tsx, action-list.tsx, authority-picker.tsx
+data/authorities.json      → about 24 authorities (was 4)
+docs/redesign/             → before/after screenshots and click counts
+```
+
+### Success criteria
+
+1. The tokens above are in place. axe-core reports zero serious or critical issues in light and dark. Lighthouse accessibility is at least 95 on home, filing and case pages, at 100% and 125% text size.
+2. No emblem and no "Government of India" or "DoPT" branding anywhere. The utility bar and footer both say the site is unofficial.
+3. At 375px:
+   - The header is one row of 64px or less.
+   - The tab bar shows 4 items at least 44px tall, with `aria-current` on the active one.
+   - No page scrolls sideways, and the last element on each page stays visible above the bar.
+   - The bar is absent at 768px and wider, and on `/pay/*`.
+4. A citizen with an additional fee waiting sees "Pay ₹X" on `/` and reaches the card form in 2 clicks. A citizen with nothing pending sees "Nothing needs your attention" plus their in-progress requests.
+5. Filing has 2 steps. A Playwright test files and pays from `/` in exactly 6 clicks with a saved card.
+6. `stageFor()` is unit-tested for all 12 statuses. `nextAction()` is tested for every action type and for the appeal-window edges. The case page shows the stepper, days left and the sticky action.
+7. At least 20 authorities across at least 10 ministries are seeded, locally and on Neon. A Popular chip selects in one click. Browse groups by ministry. Searching "पेंशन" finds the pension department.
+8. Text size and language survive a reload with no flash. 125% at 375px has no sideways scroll.
+9. With हिन्दी selected, every in-scope page shows Hindi interface text and `<html lang="hi">`. A missing Hindi key fails `npm run typecheck`. Golden path 1 passes with the Hindi interface.
+10. `npm run lint && npm run typecheck && npm test && npm run test:e2e` all pass. No new runtime dependency and no schema change.
+11. `docs/redesign/` has before/after pairs for home, filing, status/case, appeal and phone, plus the click table.
+
+### Boundaries (v3 additions)
+
+- **Always:**
+  - Colours come only from tokens in `globals.css`.
+  - From T3 on, new or changed citizen-facing text goes through `lib/i18n`. After T14, all of it does.
+  - Keep the student-project notice on every page.
+- **Ask first:** a new dependency, a schema change, removing a route, or changing any legal timing.
+- **Never:**
+  - Copy UX4G's logo or use the national emblem.
+  - Translate interface text at runtime with Gemini.
+  - Capture the real portal past its agreement checkboxes.

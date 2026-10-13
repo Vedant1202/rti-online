@@ -1,201 +1,297 @@
-# Implementation Plan: RTI Online v2
+# Implementation Plan: RTI Online v3 (Redesign)
 
-Builds on [SPEC.md](../SPEC.md) and the finished v1 ([plan-v1.md](plan-v1.md)). Status: **Draft, awaiting sign-off**. Workflow: commit and push straight to `main`.
+Builds on [SPEC.md → Version 3: Redesign](../SPEC.md#version-3-redesign-october-2026). Earlier plans: [plan-v1.md](plan-v1.md), [plan-v2.md](plan-v2.md). Status: **Draft, awaiting sign-off.** Workflow: commit and push straight to `main`; Vercel deploys each push.
 
 ## Overview
 
-Four additions to the live app:
+Eight redesign items from the audit of rtionline.gov.in, plus before/after evidence for the report:
 
-1. **Card checkout:** a polished card payment page that detects the card brand, validates the number, expiry and CVC, offers two saved cards for quick filling, and never charges anything.
-2. **Icons and loaders:** icons across all pages, a progress bar and skeletons between page switches, and spinners on buttons.
-3. **Gemini AI:** "Rewrite formally" for the request text, and a "Recommended" department tag based on what the citizen wrote. Both show loaders while Gemini works.
-4. **Help and accessibility:** info buttons that explain RTI terms, a Help page, and a full screen-reader and keyboard pass.
+1. UX4G look: tokens, Noto Sans, and a utility bar.
+2. Phone tab bar and a one-row header.
+3. Home page that shows what needs doing first.
+4. Filing in 2 steps, going straight to checkout.
+5. Case-page stepper, days left and a sticky next action.
+6. Authority picker with more authorities, Popular chips and a grouped list.
+7. Text size A− / A / A+.
+8. English/हिन्दी interface.
 
 ## Architecture decisions
 
-- **Card details never leave the browser.** Validation runs in the page. The server receives only the brand and last 4 digits, never the full number or CVC, and nothing is stored beyond that. This keeps the checkout safe on a public site, where someone could type a real card.
-- **Stripe-like layout, but not Stripe.** Order summary on the left, card form on the right, clean inputs, and the card brand icon appearing as you type. No Stripe name, logo or wording. The site-wide footer ("Student project… Do not enter real personal information") stays.
-- **The checkout reuses the existing signed-webhook flow.** A valid card "succeeds", the app records the payment and the request is filed exactly as today. Idempotency and the registration-number logic don't change.
-- **Gemini runs only on the server,** through route handlers using `@google/genai`. The key is in `GEMINI_API_KEY` (env only, never in the browser or the repo). The model comes from `GEMINI_MODEL`, default `gemini-flash-latest`. JSON responses are constrained with `responseJsonSchema`.
-- **AI never overwrites silently.** The rewrite shows a preview with Use rewrite / Keep mine. The department tag is a suggestion; the citizen still picks.
-- **AI degrades gracefully.** No key, a timeout (15 s), or the free-tier limit means the buttons explain that the feature is unavailable, and the keyword suggestions keep working.
-- **Per-user AI limit:** 20 calls an hour, so one user can't use up the free quota.
-- **Icons:** `lucide-react` (tree-shaken, one consistent outline style). Card-brand marks are small inline SVGs.
-- **Accessibility is tested automatically:** axe-core checks in Playwright on key pages in both themes, plus keyboard-only e2e paths.
+- **The root layout still never reads cookies.** That's what keeps `loading.tsx` instant.
+  - Text size and language are applied before paint by the existing inline script, like the theme. It sets `data-text` and `lang` on `<html>`.
+  - Anything with translated text that used to sit in the root layout (skip link, footer) moves into Suspense-wrapped server components that read the cookie, as `SiteHeader` already does.
+- **Translations are a typed dictionary, not a library.**
+  - `lib/i18n/en.ts` is the source; `hi.ts` is typed as `Dict`, so a missing key fails `tsc`.
+  - Server components call `await getDict()`. Client components get the dictionary from a `LangProvider` that the page renders around them, never by reading `document.cookie` during render (that would cause hydration mismatches).
+- **Every task that touches a citizen-facing component moves its text into `en.ts` as it goes.** T12–T14 sweep up whatever is left, so Hindi (T15) is only adding translations.
+- **The next action and the progress stage are pure functions** (`lib/next-action.ts`, `lib/progress.ts`). Home, My requests and the case page share them and they're unit-tested on their own. They reuse the existing clocks (`caseClocks`, `appealWindow`); legal logic stays in `lib/rti/`.
+- **Direct checkout reuses existing endpoints.** The Review step calls `POST /api/requests`, then `POST /api/payments`, and goes to the returned `redirectTo`. No new API, and idempotency is unchanged.
+- **UX4G style without the UX4G library.** Tokens are recreated in `globals.css` (Tailwind `@theme`). No Bootstrap and no new dependency.
+- **Authorities are seed data, not schema.** `data/authorities.json` grows from 4 to about 24. The upsert is idempotent and also runs on Neon.
 
 ## Dependency graph
 
 ```
-T1 Icons + a11y primitives (InfoTip, skip link, live region) ─┬─► T2 Page loaders + button spinners
-                                                               ├─► T9 Icons across pages
-                                                               └─► T10 Help buttons + Help page ─► T11 Accessibility pass
-T3 Card rules (pure) ─► T4 Checkout page ─► T5 Payment receipt
-T6 Gemini client + limits ─┬─► T7 Formal rewrite
-                           └─► T8 Recommended department tag
+T1 Tokens + type ─┬─► T4 Utility bar + header + footer ─► T5 Tab bar
+T2 Text size ─────┤                                  └─► (T15 adds the language switch to the bar)
+T3 i18n base ─────┘
+T6 nextAction/stageFor ─┬─► T7 Action-first home
+                        └─► T8 Case stepper + sticky action
+T9 More authorities ─► T10 Authority picker ─► T11 Two-step filing + direct checkout
+T3 ─► T12, T13, T14 (string sweeps) ─► T15 Hindi + switch
+All ─► T16 Before/after docs ─► T17 Final checks
 ```
+
+Can run in parallel: T6 and T9; T12, T13 and T14; T16 can start any time after Checkpoint 2.
 
 ## Task list
 
 ### Phase 1: Foundations
 
-#### Task 1: Icons and accessibility building blocks
-**Description:** Add `lucide-react`. Create an `InfoTip` component (button with `aria-expanded`; the popover closes on Escape or click outside; focus returns to the button), a "Skip to content" link, a polite `aria-live` announcer that client actions can call, and visible focus styles in both themes.
+#### Task 1: UX4G tokens and type
+**Description:** Replace the palette in `globals.css` with the spec's UX4G light and dark tokens. Add a `--field` border token, switch to Noto Sans plus Noto Sans Devanagari (400/600/700), and restyle `.btn`, `.btn-ghost`, `.input`, `.card` and pills: 6px button corners, 8px card corners, 44px minimum tap height on phones.
 **Acceptance criteria:**
-- [ ] `InfoTip` works by mouse, keyboard (Enter/Space/Escape) and screen reader (announced name and expanded state)
-- [ ] Tab from the address bar reaches "Skip to content" first, and it jumps to `<main>`
-- [ ] Focus rings are visible on every interactive element in light and dark
-**Verification:** Component unit test for InfoTip state; Playwright keyboard test; `npm run build`.
+- [ ] Every token in the spec is in place for light and dark; nothing uses raw colour values
+- [ ] axe-core reports zero serious or critical issues in both themes (existing `a11y.spec.ts`)
+- [ ] Form-field borders reach 3:1 against the surface in both themes
+**Verification:** `npm run build`; `npx playwright test e2e/a11y.spec.ts e2e/theme.spec.ts`; check home, filing and case pages in both themes by eye.
 **Dependencies:** None
-**Files:** `components/info-tip.tsx`, `components/announcer.tsx`, `app/layout.tsx`, `app/globals.css`, `package.json`
-**Size:** M
-
-#### Task 2: Loaders between pages and on actions
-**Description:** A thin top progress bar while a link navigation is pending, `loading.tsx` skeletons for My requests, the case page, the officer queues and the stats page, and spinners plus `aria-busy` on every button that calls the server.
-**Acceptance criteria:**
-- [ ] Clicking a link shows the progress bar within 100 ms and skeletons for slow pages
-- [ ] Buttons show a spinner and are disabled while working; screen readers hear "Loading…"
-- [ ] Respects `prefers-reduced-motion` (no animation; static indicator)
-**Verification:** Playwright test with a throttled network asserting the skeleton appears; manual check with reduced motion on.
-**Dependencies:** T1
-**Files:** `components/nav-progress.tsx`, `app/**/loading.tsx` (4–5 files), `components/use-action.tsx`, `components/spinner.tsx`
-**Size:** M
-
-### Checkpoint 1
-- [ ] All tests pass; build clean; deployed to production and checked
-
-### Phase 2: Card checkout
-
-#### Task 3: Card rules library
-**Description:** Pure functions with tests: brand detection by number prefix (Visa, Mastercard, RuPay, American Express), Luhn check, valid lengths per brand, number formatting (4-4-4-4, or 4-6-5 for Amex), expiry (MM/YY, not past, within 20 years), and CVC length (3, or 4 for Amex).
-**Acceptance criteria:**
-- [ ] Every brand is detected from its first digits and shows as soon as it's identifiable
-- [ ] Wrong checksum, wrong length, past expiry and short CVC each give a specific message
-- [ ] 100% line coverage of `lib/card.ts`
-**Verification:** `npm test -- tests/unit/card.test.ts --coverage`
-**Dependencies:** None
-**Files:** `lib/card.ts`, `tests/unit/card.test.ts`
+**Files:** `app/globals.css`, `app/layout.tsx`
 **Size:** S
 
-#### Task 4: Checkout page
-**Description:** Replace the current gateway page with a card checkout: order summary (department, subject, amount), card number field with a live brand icon, expiry, CVC, name on card, two saved cards that fill the form in one click, inline errors, and a Pay button with a spinner. On submit the browser validates, then sends only `{brand, last4}`; the server completes the payment through the existing signed flow. One declining number shows the failure path.
+#### Task 2: Text size control (A− / A / A+)
+**Description:** Add `lib/prefs.ts` (cookie names plus `parseTextSize`). Extend the inline pre-paint script to set `data-text` on `<html>`, with CSS `html[data-text=sm|lg]` setting 87.5% / 125%. Add `components/text-size.tsx`: three buttons in a group, with `aria-pressed` and labels like "Text size: larger".
 **Acceptance criteria:**
-- [ ] Choosing a saved card fills every field; Pay succeeds and the request is filed with its number
-- [ ] An invalid number, past expiry or short CVC blocks Pay with a message next to the field, announced to screen readers
-- [ ] The network request carries no full card number or CVC (asserted in e2e)
-- [ ] The page never says "mock", "test" or "demo", and has no Stripe name or logo
-**Verification:** Playwright: saved-card path, invalid-card path, decline path, and request-body inspection; integration test for the new route; desktop and 375px.
-**Dependencies:** T3
-**Files:** `app/pay/[checkoutId]/page.tsx` (replaces `pay/mock`), `app/pay/[checkoutId]/card-form.tsx`, `components/card-brand-icon.tsx`, `app/api/payments/checkout/[id]/route.ts`, `lib/services/payments.ts`
+- [ ] The choice survives a reload with no flash of the wrong size
+- [ ] At 125% and 375px, no key page scrolls sideways
+- [ ] The buttons work with the keyboard and announce their pressed state
+**Verification:** Unit test `tests/unit/prefs.test.ts`; new `e2e/text-size.spec.ts` (persistence, plus a no-overflow check at 125% on the 375px project).
+**Dependencies:** None (the control is placed in the bar in T4)
+**Files:** `lib/prefs.ts`, `components/text-size.tsx`, `app/layout.tsx`, `app/globals.css`, `tests/unit/prefs.test.ts`, `e2e/text-size.spec.ts`
 **Size:** M
 
-#### Task 5: Payment receipt
-**Description:** Store the card brand and last 4 digits on the payment (schema change), and show "Paid ₹10 with Visa •••• 4242" on the timeline, in the filed email and on the pay page for extra fees.
+#### Task 3: Translation groundwork (English only)
+**Description:** Create `lib/i18n/en.ts` (nested, `as const`) with `type Dict`. Add `lib/i18n/server.ts` with `getLang()` and `getDict()` reading the `rti_lang` cookie (`parseLang` lives in `lib/prefs.ts`), and `lib/i18n/client.tsx` with `LangProvider` and `useT()`. Add a `format(template, vars)` helper for strings like "Pay {amount}". Include `en`-only date and plural helpers that take the language. No visible switch yet.
 **Acceptance criteria:**
-- [ ] Brand and last 4 are saved; nothing else about the card is
-- [ ] Timeline and email show the receipt line
-**Verification:** Integration test; migration runs on a fresh database and on Neon.
+- [ ] `getDict()` returns English for a missing or unknown cookie
+- [ ] A client component under `LangProvider` renders the same text on the server and the client (no hydration warning)
+- [ ] The root layout still doesn't read cookies, and the loader tests still pass
+**Verification:** `tests/unit/i18n.test.ts`; `npx playwright test e2e/loaders.spec.ts`; `npm run typecheck`.
+**Dependencies:** None
+**Files:** `lib/i18n/en.ts`, `lib/i18n/server.ts`, `lib/i18n/client.tsx`, `lib/prefs.ts`, `tests/unit/i18n.test.ts`
+**Size:** M
+
+#### Task 4: Utility bar, one-row header, translatable footer
+**Description:**
+- Add `components/utility-bar.tsx`: an indigo bar reading "Student rebuild · not an official website", with the text-size control, the theme toggle (moved here) and a slot for the language switch. A 3px tricolour strip sits under it.
+- Rework `site-header.tsx` into one row: the logo, desktop nav links (File, My requests, Reply times, Help), and Sign in or the account menu.
+- Move the skip link and the footer into Suspense-wrapped server components (`SiteHeader`, a new `SiteFooter`) so they can be translated. English placeholders stay in the fallbacks.
+**Acceptance criteria:**
+- [ ] The header is one row of 64px or less at 375px; the utility bar wraps cleanly on narrow screens
+- [ ] Tab from the address bar still reaches "Skip to content" first; `data-testid="disclaimer"` still holds "Not affiliated" and a Help link
+- [ ] No emblem and no "Government of India" text anywhere
+**Verification:** `npx playwright test e2e/a11y-basics.spec.ts e2e/smoke.spec.ts e2e/help.spec.ts e2e/responsive.spec.ts`; screenshots at 375px and 1280px.
+**Dependencies:** T1, T2, T3
+**Files:** `components/utility-bar.tsx`, `components/site-header.tsx`, `components/site-footer.tsx`, `app/layout.tsx`, `lib/i18n/en.ts`
+**Size:** M
+
+#### Task 5: Phone tab bar
+**Description:** Add `components/bottom-nav.tsx`: a client component using `usePathname`, wrapped by a server component (in Suspense) that knows the user's role and language.
+- Below 768px, citizens and signed-out visitors see Home, File, My requests and Help, with icons. Signed-out "My requests" goes to sign in.
+- The bar is fixed to the bottom, honours `env(safe-area-inset-bottom)` and comes after `<main>` in the DOM.
+- `main` gets bottom padding on phones. The bar is hidden on `/pay/*` and for officers.
+**Acceptance criteria:**
+- [ ] 4 items, each at least 44px tall, with `aria-current="page"` on the active one
+- [ ] The last element of every key page is visible above the bar when scrolled to the end
+- [ ] Not rendered at 768px or wider, on `/pay/*`, or for officer roles
+**Verification:** New `e2e/bottom-nav.spec.ts` (mobile project: items, active state, nothing hidden behind the bar, hidden on checkout; desktop project: absent); axe scan.
 **Dependencies:** T4
-**Files:** `lib/db/schema.ts`, `drizzle/0001_*.sql`, `lib/services/payments.ts`, `components/timeline.tsx`
+**Files:** `components/bottom-nav.tsx`, `app/layout.tsx`, `app/globals.css`, `lib/i18n/en.ts`, `e2e/bottom-nav.spec.ts`
+**Size:** M
+
+### Checkpoint 1: Foundations
+- [ ] `npm run lint && npm run typecheck && npm test && npm run test:e2e` pass
+- [ ] Pushed to `main`; production checked in light and dark, at 375px and 1280px, and at all three text sizes
+- [ ] Show the user the new look before going on
+
+### Phase 2: Citizen flows
+
+#### Task 6: `nextAction()` and `stageFor()`
+**Description:** Two pure functions.
+- `nextAction(summary, now)` returns the citizen's next step:
+  - `pay_fee`, `pay_additional` (with amount), `upload_document`
+  - `read_reply_or_appeal` (with the appeal deadline from `appealWindow`), `appeal_overdue` (no reply, window open)
+  - `null`
+- `stageFor(status, flags)` maps all 12 statuses to stepper stages (Filed, With officer, Reply, Appeal, Decided) with a tone and a "waiting for you" flag.
+**Acceptance criteria:**
+- [ ] `stageFor` is tested for all 12 statuses; `nextAction` for each action type, plus the appeal window just before opening, just after closing, and after an appeal is filed
+- [ ] No legal timing is duplicated; deadlines come from `lib/rti/`
+**Verification:** `npm test -- tests/unit/next-action.test.ts tests/unit/progress.test.ts`
+**Dependencies:** None
+**Files:** `lib/next-action.ts`, `lib/progress.ts`, `tests/unit/next-action.test.ts`, `tests/unit/progress.test.ts`
 **Size:** S
 
-### Checkpoint 2
-- [ ] File → card checkout → number assigned works on production, desktop and phone
-- [ ] Full card number and CVC never appear in server logs or network bodies
-
-### Phase 3: Gemini AI
-
-#### Task 6: Gemini client, limits and fallbacks
-**Description:** `lib/ai/gemini.ts` wrapping `@google/genai` with a 15 s timeout, JSON-schema responses, clean error types (no key, timeout, quota, blocked), and a per-user limit of 20 calls an hour stored in the database. Unit tests use a fake client; no real API calls in tests.
+#### Task 7: Home page that shows what needs doing
+**Description:**
+- **Signed-out:** a UX4G-style hero with File a request and Track my requests buttons, then "How it works" in 4 icon steps, then a link to Reply times.
+- **Signed-in citizens:** a greeting, a "Needs your action" list (action cards from `nextAction`, including split parts), an "In progress" list (status plus days left), and the File button. When nothing is pending, show "Nothing needs your attention".
+- **Officers:** a banner linking to their queue.
+- Extend `listCitizenRequests` to return each request's next action.
 **Acceptance criteria:**
-- [ ] Without `GEMINI_API_KEY` the AI routes return a clear "AI features are switched off" error and the UI hides or disables the buttons
-- [ ] The 21st call in an hour is refused with a message saying when to try again
-- [ ] The key never reaches the browser bundle (checked with a build-output search)
-**Verification:** `npm test`; `grep -r GEMINI .next/static` finds nothing.
+- [ ] A citizen with an additional fee waiting reaches the card form in 2 clicks from `/`
+- [ ] A citizen with an open appeal window sees "Read the reply" and "Appeal by {date}" on `/`
+- [ ] The signed-out home passes axe and has no sideways scroll at 375px
+**Verification:** Integration test in `tests/integration/views.test.ts` (next actions in the list, including split parts); new `e2e/home-actions.spec.ts`; `e2e/smoke.spec.ts` updated if needed.
+**Dependencies:** T4, T6
+**Files:** `app/page.tsx`, `components/action-list.tsx`, `lib/services/views.ts`, `lib/i18n/en.ts`, `e2e/home-actions.spec.ts`
+**Size:** M
+
+#### Task 8: Case-page stepper, days left and sticky action
+**Description:** Add `components/case-stepper.tsx`: an ordered list with `aria-current="step"` and the stage names visible on phones. Add a days-left bar inside `ClockSummary`, and `components/next-action-bar.tsx`, a sticky bar for the owner: at the bottom on phones (above the tab bar), at the top of the page on desktop. Rebuild the case-page header around them; the timeline stays below.
+**Acceptance criteria:**
+- [ ] The stepper shows the right stage for filed, fee requested, replied, rejected, appeal filed and appeal decided cases
+- [ ] The sticky action shows only for the owner when `nextAction` isn't null, and never hides content or the tab bar
+- [ ] Screen readers hear "Step 2 of 5, With officer, current"
+**Verification:** `e2e/golden-paths.spec.ts` still passes, with assertions added for the stepper stage at each step; axe scan of the case page.
+**Dependencies:** T5, T6
+**Files:** `components/case-stepper.tsx`, `components/next-action-bar.tsx`, `components/clock-badge.tsx`, `app/requests/[id]/page.tsx`, `lib/i18n/en.ts`
+**Size:** M
+
+#### Task 9: More authorities
+**Description:** Grow `data/authorities.json` from 4 to about 24 central public authorities across 12 or more ministries, including Railways, EPFO, Passport (MEA), CBDT, UIDAI, Department of Posts, CBIC, NHAI, ESIC, Food & Public Distribution, Health, Education, MHA and the two DoPT departments. Keep the existing 4 codes unchanged so registration numbers and tests hold. Each needs English and Hindi keywords and a `popular: true` flag for the 6 chips. Each gets 4 officer accounts as plus-addresses through the existing seed.
+**Acceptance criteria:**
+- [ ] At least 20 authorities across at least 10 ministries; codes unique; the existing 4 unchanged
+- [ ] Seed stays idempotent; running it twice changes nothing
+- [ ] The keyword suggestion finds the right authority for 6 sample requests, one per popular authority
+**Verification:** `tests/integration/seed.test.ts` (counts, idempotency); `tests/unit/suggest.test.ts` (new samples); `npm run db:seed` locally.
 **Dependencies:** None
-**Files:** `lib/ai/gemini.ts`, `lib/ai/limits.ts`, `lib/db/schema.ts` (ai_usage table), `tests/integration/ai.test.ts`
-**Size:** M
+**Files:** `data/authorities.json`, `scripts/seed-data.ts`, `tests/integration/seed.test.ts`, `tests/unit/suggest.test.ts`
+**Size:** S
 
-#### Task 7: Rewrite formally
-**Description:** A "Rewrite formally" button under the request text. Gemini rewrites it as a formal RTI request in the **same language**, keeping every fact, date, number and `[placeholder]` and inventing nothing. While it works, the text area shows a shimmer and "Rewriting…" is announced. The result appears as a preview: Use rewrite / Keep mine, with Undo after using it.
+#### Task 10: Authority picker
+**Description:** Add `components/authority-picker.tsx`, taking the place of the inline radio list in the wizard:
+- the AI "Recommended" tag and keyword suggestions, as today
+- 6 Popular chips (`aria-pressed`)
+- "Browse all", a disclosure with a search box and a list grouped by ministry (`role="radiogroup"` per group with a ministry heading); search matches name, ministry and keywords, Hindi included
+- a compact "Selected: {name} · Change" line once something is chosen
 **Acceptance criteria:**
-- [ ] Hindi in, Hindi out; numbers like `PPO/2019/4471` survive unchanged (checked in code after the model replies; rejected and retried once if they don't)
-- [ ] The citizen's text is never replaced without clicking Use rewrite
-- [ ] Loader, success and error states are all announced
-**Verification:** Integration test with a fake model, including the "dropped a number" rejection; Playwright with the AI route stubbed.
-**Dependencies:** T6, T1
-**Files:** `app/api/ai/rewrite/route.ts`, `lib/ai/rewrite.ts`, `app/requests/new/rewrite-panel.tsx`, `app/requests/new/filing-wizard.tsx`
+- [ ] A Popular chip selects its authority in one click; the selection shows in the summary line
+- [ ] Searching "पेंशन" lists the Department of Pension and Pensioners' Welfare; an empty result shows the state-government note
+- [ ] Fully usable by keyboard: arrow keys inside a radio group, Enter to open Browse all
+**Verification:** Updated `e2e/ai-suggest.spec.ts` and `e2e/file-request.spec.ts`; axe scan of the filing page.
+**Dependencies:** T9
+**Files:** `components/authority-picker.tsx`, `app/requests/new/filing-wizard.tsx`, `app/requests/new/page.tsx`, `lib/i18n/en.ts`
 **Size:** M
 
-#### Task 8: Recommended department tag
-**Description:** On the department step, Gemini picks the best match from the seeded central authorities (the response is constrained to their IDs) and returns a one-line reason. It's shown as a "Recommended" tag with an AI icon at the top of the list, and the reason is in an InfoTip. Skeleton tags show while loading; keyword suggestions stay as the fallback.
+#### Task 11: Two-step filing with direct checkout
+**Description:** Merge the "Your request" and "Authority" steps into **Write**: templates, subject, text, rewrite and attachment, with the picker under the text. **Review and pay** shows the summary, the below-poverty-line and life-or-liberty options, and one button: "Pay ₹10 and file", or "File request" for BPL.
+- The button calls `POST /api/requests` then `POST /api/payments` and goes to `redirectTo`: the card page, or the case page for BPL.
+- `useRecommendation` now runs 1.5 s after typing stops, once the text has at least 8 words, once per distinct text.
+- Update `fileViaUi` in `e2e/helpers.ts`.
 **Acceptance criteria:**
-- [ ] A train-refund request recommends Railways with a short reason
-- [ ] An ID that isn't in the list is impossible (schema enum) and ignored if returned
-- [ ] With AI off or slow, keyword suggestions appear within 1 s
-**Verification:** Integration test with a fake model; Playwright with the route stubbed for success, slow and failure.
-**Dependencies:** T6
-**Files:** `app/api/ai/suggest-authority/route.ts`, `lib/ai/suggest-authority.ts`, `app/requests/new/filing-wizard.tsx`
+- [ ] A Playwright test files and pays from `/` in exactly 6 clicks with the saved Visa
+- [ ] The state-body warning still shows before payment; the draft still autosaves and restores
+- [ ] With the AI stubbed off, no `/api/ai/suggest-authority` call is made for text under 8 words, and at most one per distinct text
+**Verification:** `e2e/file-request.spec.ts` (new 6-click test), `e2e/drafts.spec.ts`, `e2e/checkout.spec.ts`, `e2e/golden-paths.spec.ts`; `tests/integration/requests-create.test.ts` unchanged and passing.
+**Dependencies:** T10
+**Files:** `app/requests/new/filing-wizard.tsx`, `app/requests/new/use-recommendation.ts`, `e2e/helpers.ts`, `e2e/file-request.spec.ts`, `lib/i18n/en.ts`
 **Size:** M
 
-### Checkpoint 3
-- [ ] With the real key on production: rewrite and recommendation work in English and Hindi
-- [ ] With the key removed locally: the app works and explains that AI is off
+### Checkpoint 2: Citizen flows
+- [ ] Full suite passes
+- [ ] `npm run db:seed` run once against Neon (idempotent); production shows about 24 authorities
+- [ ] On production: file in 6 clicks, home shows actions, the case stepper is right through golden path 2
+- [ ] Show the user before starting Hindi
 
-### Phase 4: Icons, help and accessibility
+### Phase 3: Hindi interface
 
-#### Task 9: Icons across the app
-**Description:** Icons on navigation, landing cards, status pills, timeline events, officer queues, file uploads and key buttons. Decorative icons are `aria-hidden`; icon-only buttons have labels.
+#### Task 12: Move case-page text into the dictionary
+**Description:** Move status labels (`lib/status.ts` → keys), timeline event text, clock wording, citizen actions and the upload-requested panel into `en.ts`.
 **Acceptance criteria:**
-- [ ] Every timeline event type and every status has an icon
-- [ ] No icon is the only way information is shown (text always present)
-**Verification:** axe-core check (T11); visual check in both themes at 375px and desktop.
-**Dependencies:** T1
-**Files:** `components/site-header.tsx`, `components/timeline.tsx`, `components/pill.tsx`, `components/officer-queue.tsx`, `app/page.tsx`
+- [ ] No hard-coded English left in these files (checked with grep)
+- [ ] Golden paths unchanged
+**Verification:** `npm run typecheck`; `npx playwright test e2e/golden-paths.spec.ts e2e/officer-flow.spec.ts`
+**Dependencies:** T3, T8
+**Files:** `lib/status.ts`, `components/timeline.tsx`, `components/clock-badge.tsx`, `app/requests/[id]/citizen-actions.tsx`, `app/requests/[id]/upload-requested.tsx`
 **Size:** M
 
-#### Task 10: Help buttons and Help page
-**Description:** InfoTips next to RTI terms and tricky fields: CPIO, nodal officer, BPL, life or liberty, registration number, the paused clock, first appeal, and the state-office warning. A `/help` page with a short FAQ, linked from the header and footer.
+#### Task 13: Move My requests, sign-in and checkout text into the dictionary
+**Description:** Same sweep for `app/requests/page.tsx`, `app/login/*`, `app/requests/[id]/pay/*` and `app/pay/[checkoutId]/*`. Card-validation messages go through dictionary keys; `lib/card.ts` returns error codes, not English.
 **Acceptance criteria:**
-- [ ] Each term above has an InfoTip in plain language, citing the RTI Act section where relevant
-- [ ] `/help` is reachable from every page
-**Verification:** Playwright opens each InfoTip with the keyboard; content review.
-**Dependencies:** T1
-**Files:** `app/help/page.tsx`, `lib/help-content.ts`, the wizard, case page and pay page
+- [ ] No hard-coded English left in these files
+- [ ] Checkout and login e2e unchanged
+**Verification:** `npx playwright test e2e/login.spec.ts e2e/checkout.spec.ts`; `npm test -- tests/unit/card.test.ts`
+**Dependencies:** T3, T11
+**Files:** `app/requests/page.tsx`, `app/login/login-form.tsx`, `app/pay/[checkoutId]/card-form.tsx`, `app/pay/[checkoutId]/page.tsx`, `lib/card.ts`
 **Size:** M
 
-#### Task 11: Accessibility pass
-**Description:** Add `@axe-core/playwright` and scan the landing, sign-in, filing (every step), checkout, case, officer and stats pages in light and dark. Fix every issue found: heading order, landmarks, label links, error summaries that take focus, focus after actions, colour contrast, and `lang="hi"` on Hindi text where it can be detected.
+#### Task 14: Move help topics and the Help page into the dictionary
+**Description:** `lib/help-content.ts` becomes keyed entries in the dictionary. `HelpTip` and `InfoTip` button labels and the Help page read from it.
 **Acceptance criteria:**
-- [ ] Zero axe violations (serious or critical) on all scanned pages in both themes
-- [ ] File → pay → see timeline works with the keyboard alone
-- [ ] Lighthouse accessibility ≥ 95 on the landing, filing and case pages
-**Verification:** `npm run test:e2e -- e2e/a11y.spec.ts`; Lighthouse via DevTools.
-**Dependencies:** T2, T4, T7, T8, T9, T10
-**Files:** `e2e/a11y.spec.ts`, fixes across components
-**Size:** M
+- [ ] Every help topic renders from the dictionary; `e2e/help.spec.ts` passes
+**Verification:** `npx playwright test e2e/help.spec.ts`
+**Dependencies:** T3
+**Files:** `lib/help-content.ts`, `components/help-tip.tsx`, `components/info-tip.tsx`, `app/help/page.tsx`, `lib/i18n/en.ts`
+**Size:** S
 
-### Checkpoint 4
-- [ ] All unit, integration and e2e tests pass; deployed; production checked on desktop and phone
-- [ ] README and SPEC updated (new env vars, AI, checkout, a11y)
+#### Task 15: Hindi dictionary and language switch
+**Description:**
+- Write `lib/i18n/hi.ts`: plain formal Hindi, with RTI terms people recognise, e.g. "सूचना का अधिकार (RTI)", "प्रथम अपील", "केंद्रीय जन सूचना अधिकारी (CPIO)".
+- Add `components/lang-switch.tsx` ("English | हिन्दी", with `lang="hi"` on the Hindi label) to the utility bar. It sets the cookie, updates `<html lang>` and calls `router.refresh()`.
+- Dates use `hi-IN`.
+**Acceptance criteria:**
+- [ ] With हिन्दी selected, every in-scope page shows Hindi interface text and `<html lang="hi">`; officer pages stay English
+- [ ] Deleting any key from `hi.ts` fails `npm run typecheck`
+- [ ] Golden path 1 passes with the Hindi interface (selectors by test ID or Hindi names)
+**Verification:** New `e2e/hindi.spec.ts`; axe scan in Hindi; manual review by a Hindi-speaking teammate (listed in the checkpoint).
+**Dependencies:** T12, T13, T14
+**Files:** `lib/i18n/hi.ts`, `components/lang-switch.tsx`, `components/utility-bar.tsx`, `lib/format.ts`, `e2e/hindi.spec.ts`
+**Size:** M (the Hindi strings are most of the work)
+
+### Checkpoint 3: Hindi
+- [ ] Full suite passes; production checked in Hindi at 375px and 1280px
+- [ ] A teammate has reviewed the Hindi strings (ask the user who)
+
+### Phase 4: Evidence and wrap-up
+
+#### Task 16: Before/after screenshots and click counts
+**Description:** `scripts/capture-redesign.ts` (Playwright, run by hand) captures public pages of rtionline.gov.in (home, guidelines, View Status, the authority list) and the matching pages of ours, at 1280px and 375px. No forms are submitted and no checkboxes ticked. `docs/redesign/README.md` pairs them with short captions and the click-count table from the spec.
+**Acceptance criteria:**
+- [ ] Before/after pairs for home, filing, status/case, appeal and phone; the click table matches what the e2e tests do
+**Verification:** Open `docs/redesign/README.md` on GitHub; the images render.
+**Dependencies:** Checkpoint 2 (better after Checkpoint 3, so the Hindi shots can be included)
+**Files:** `scripts/capture-redesign.ts`, `docs/redesign/README.md`, `docs/redesign/*.png`
+**Size:** S
+
+#### Task 17: Final checks and docs
+**Description:** Lighthouse accessibility on home, filing and case pages at 100% and 125% text size, in both themes. Update the README (features, screenshots link) and add a "Changes made during v3" note to SPEC.md.
+**Acceptance criteria:**
+- [ ] Lighthouse accessibility ≥ 95 on all of those; axe clean
+- [ ] Every v3 success criterion in the spec is checked off
+**Verification:** Lighthouse runs on production; `npm run test:e2e` against production (`E2E_BASE_URL`) for the read-only specs.
+**Dependencies:** T1–T16
+**Files:** `README.md`, `SPEC.md`, `tasks/todo.md`
+**Size:** S
+
+### Checkpoint 4: Complete
+- [ ] All spec success criteria met; deployed; the user has seen it
 
 ## Risks and mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| A visitor types a real card on the public site | High | Card number and CVC stay in the browser; only brand + last 4 reach the server; footer disclaimer stays |
-| Looking too much like Stripe | Medium | Similar layout only; no Stripe name, logo or copy |
-| Gemini free-tier rate limits during the demo | Medium | Per-user limit, fast keyword fallback, clear "try again" message |
-| Gemini free tier may use prompts to improve Google's products | Medium | A one-line note by the AI buttons ("Sent to Google Gemini"); demo data only |
-| Model rewrites facts or numbers | Medium | Numbers and placeholders checked in code; rewrite is preview-only |
-| API key exposure | High | Server-only; you add it to `.env.local` and Vercel yourself |
-| More moving parts slow pages | Low | Icons tree-shaken; AI calls only on button press or on reaching the department step |
+| Translated text in the root layout makes loaders slow again | High | Language goes through the pre-paint script plus Suspense-wrapped header and footer; `loaders.spec.ts` runs at every checkpoint |
+| Hydration mismatch from language on the client | Medium | Client components only read the dictionary from `LangProvider`; never `document.cookie` during render |
+| New palette fails contrast | Medium | Contrast checked when choosing tokens; axe in both themes at every checkpoint |
+| e2e selector churn from new labels and steps | Medium | Keep accessible names that tests use ("Subject", "What information do you want?"); update helpers in the same commit; never delete tests |
+| Debounced recommendation uses up the Gemini quota | Medium | 8-word minimum, 1.5 s idle, once per text, the existing 20-per-hour limit; e2e stubs AI off |
+| Seeding Neon with more authorities | Low | Idempotent upsert; existing codes unchanged; officer emails are plus-addresses to the team inbox only |
+| Hindi strings read as machine-translated | Medium | Written by hand in plain formal Hindi; a teammate reviews before the demo |
+| Tab bar or sticky action covers content | Medium | Bottom padding, safe-area inset, and an e2e check that the last element stays visible |
+| 125% text breaks phone layouts | Medium | Text-size e2e checks for sideways scroll at 375px |
 
-## Open questions (my proposal in brackets)
+## Open questions (defaults chosen; change any before building)
 
-1. **Saved cards:** [Visa `4242 4242 4242 4242`, "Asha Sharma", 12/30; Mastercard `5555 5555 5555 4444`, "Ravi Kumar", 08/29. Both are the networks' published test numbers and pass validation. One click fills every field, including the CVC.]
-2. **Failure path:** [`4000 0000 0000 0002` is declined with "Your card was declined", so the failure screen can still be demoed. Not one of the saved cards.]
-3. **Disclosure:** [No "mock"/"test" wording on the checkout, as you asked. The site-wide footer stays, and card details never leave the browser.]
-4. **Rewrite language:** [Keep the citizen's language: Hindi stays Hindi.]
-5. **New dependencies:** [`lucide-react`, `@google/genai`, and `@axe-core/playwright` (dev only).]
-6. **Schema changes:** [`payments.card_brand`, `payments.card_last4`, and a new `ai_usage` table.]
-7. **Gemini key:** [You add `GEMINI_API_KEY` to `.env.local` and to Vercel yourself. Please don't paste it into the chat.]
+1. Palette: UX4G indigo `#4a2bc2`. Keep our navy instead? **Default: indigo.**
+2. Officer pages: new look only, English, desktop layout. **Default: yes.**
+3. Who reviews the Hindi strings? **Default: Archita or another Hindi-speaking teammate at Checkpoint 3.**
