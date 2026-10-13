@@ -3,6 +3,8 @@
  * the server only ever receives the brand and the last 4 digits.
  */
 import { formatRupees } from "@/lib/rti/fees";
+import { en } from "@/lib/i18n/en";
+import { fmt, type Dict } from "@/lib/i18n";
 
 export type Brand = "visa" | "mastercard" | "amex" | "rupay";
 export type CardSummary = { brand: Brand; last4: string };
@@ -76,33 +78,36 @@ export function luhnValid(digits: string): boolean {
 export type CardInput = { number: string; expiry: string; cvc: string; name: string };
 export type CardErrors = Partial<Record<keyof CardInput, string>>;
 
-export function validateCard(card: CardInput, now: Date) {
+export type CardMessages = Dict["card"]["errors"];
+
+/** Messages default to English; the checkout passes the visitor's language. */
+export function validateCard(card: CardInput, now: Date, msg: CardMessages = en.card.errors) {
   const errors: CardErrors = {};
   const digits = digitsOnly(card.number);
   const brand = detectBrand(digits);
 
-  if (!digits) errors.number = "Enter your card number.";
-  else if (!brand) errors.number = "We accept Visa, Mastercard, RuPay and American Express.";
-  else if (!RULES[brand].lengths.includes(digits.length)) errors.number = "Your card number is incomplete.";
-  else if (!luhnValid(digits)) errors.number = "Your card number isn't valid. Check it and try again.";
+  if (!digits) errors.number = msg.numberEmpty;
+  else if (!brand) errors.number = msg.numberBrand;
+  else if (!RULES[brand].lengths.includes(digits.length)) errors.number = msg.numberIncomplete;
+  else if (!luhnValid(digits)) errors.number = msg.numberInvalid;
 
   const m = /^(\d{2})\/(\d{2})$/.exec(card.expiry.trim());
-  if (!m) errors.expiry = "Enter the expiry date as MM/YY.";
+  if (!m) errors.expiry = msg.expiryFormat;
   else {
     const month = Number(m[1]);
     const year = 2000 + Number(m[2]);
     const thisYear = now.getUTCFullYear();
     const thisMonth = now.getUTCMonth() + 1;
-    if (month < 1 || month > 12) errors.expiry = "The expiry month must be 01 to 12.";
-    else if (year < thisYear || (year === thisYear && month < thisMonth)) errors.expiry = "Your card has expired.";
-    else if (year > thisYear + 20) errors.expiry = "The expiry year is too far in the future.";
+    if (month < 1 || month > 12) errors.expiry = msg.expiryMonth;
+    else if (year < thisYear || (year === thisYear && month < thisMonth)) errors.expiry = msg.expired;
+    else if (year > thisYear + 20) errors.expiry = msg.expiryFar;
   }
 
   const cvcLength = RULES[brand ?? "visa"].cvc;
   if (!new RegExp(`^\\d{${cvcLength}}$`).test(card.cvc.trim())) {
-    errors.cvc = `Enter the ${cvcLength} digits on the ${brand === "amex" ? "front" : "back"} of your card.`;
+    errors.cvc = fmt(brand === "amex" ? msg.cvcFront : msg.cvcBack, { n: cvcLength });
   }
-  if (!card.name.trim()) errors.name = "Enter the name on the card.";
+  if (!card.name.trim()) errors.name = msg.name;
 
   return {
     valid: Object.keys(errors).length === 0,

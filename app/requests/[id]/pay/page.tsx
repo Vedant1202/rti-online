@@ -7,6 +7,9 @@ import { RTI_FEE_PAISE } from "@/lib/contract";
 import { formatRupees } from "@/lib/rti/fees";
 import { PayButton } from "./pay-button";
 import { HelpTip } from "@/components/help-tip";
+import { getDict } from "@/lib/i18n/server";
+import { LangProvider } from "@/lib/i18n/client";
+import { fmt } from "@/lib/i18n";
 
 export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
   const { id } = await props.params;
@@ -15,8 +18,13 @@ export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
   const db = await getDb();
   const [req] = await db.select().from(requests).where(eq(requests.id, id));
   if (!req || req.citizenId !== user.id) notFound();
-  if (req.status !== "pending_payment" && req.status !== "fee_requested") redirect(`/requests/${id}`);
-  const [authority] = await db.select().from(authorities).where(eq(authorities.id, req.authorityId));
+  if (req.status !== "pending_payment" && req.status !== "fee_requested")
+    redirect(`/requests/${id}`);
+  const [authority] = await db
+    .select()
+    .from(authorities)
+    .where(eq(authorities.id, req.authorityId));
+  const { lang, t } = await getDict();
 
   let amount = req.bpl ? 0 : RTI_FEE_PAISE;
   let items: { label: string; quantity: number; unitPaise: number }[] = [];
@@ -29,10 +37,12 @@ export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
 
   return (
     <div className="grid max-w-xl gap-6">
-      <h1 className="text-2xl font-bold">{req.status === "fee_requested" ? "Pay the additional fee" : "Pay the RTI fee"}</h1>
+      <h1 className="text-2xl font-bold">
+        {req.status === "fee_requested" ? t.pay.titleAdditional : t.pay.titleFee}
+      </h1>
       {failed && (
         <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
-          The payment didn&apos;t go through. No money was taken. Try again.
+          {t.pay.failed}
         </p>
       )}
       <div className="card grid gap-3">
@@ -53,12 +63,19 @@ export default async function PayPage(props: PageProps<"/requests/[id]/pay">) {
           </table>
         )}
         <p className="flex items-center gap-1 text-3xl font-bold tabular-nums">
-          {formatRupees(amount)} <HelpTip topic={req.status === "fee_requested" ? "pausedClock" : "fee"} />
+          {formatRupees(amount)}{" "}
+          <HelpTip topic={req.status === "fee_requested" ? "pausedClock" : "fee"} />
         </p>
-        <PayButton
-          requestId={req.id}
-          label={req.bpl && req.status === "pending_payment" ? "File request (no fee)" : `Pay ${formatRupees(amount)}`}
-        />
+        <LangProvider lang={lang}>
+          <PayButton
+            requestId={req.id}
+            label={
+              req.bpl && req.status === "pending_payment"
+                ? t.pay.fileFree
+                : fmt(t.pay.pay, { amount: formatRupees(amount) })
+            }
+          />
+        </LangProvider>
       </div>
     </div>
   );

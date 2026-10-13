@@ -6,6 +6,8 @@ import { Lock, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { useAnnounce } from "@/components/announcer";
 import { CardBrandIcon } from "@/components/card-brand-icon";
+import { fmt } from "@/lib/i18n";
+import { useT } from "@/lib/i18n/client";
 import {
   BRAND_NAME,
   SAVED_CARDS,
@@ -23,6 +25,8 @@ const FIELDS: (keyof CardInput)[] = ["number", "expiry", "cvc", "name"];
 export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: string }) {
   const router = useRouter();
   const announce = useAnnounce();
+  const { t } = useT();
+  const c = t.card;
   const [card, setCard] = useState<CardInput>({ number: "", expiry: "", cvc: "", name: "" });
   const [errors, setErrors] = useState<CardErrors>({});
   const [declined, setDeclined] = useState<string | null>(null);
@@ -41,13 +45,15 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
 
   async function pay(e: React.FormEvent) {
     e.preventDefault();
-    const result = validateCard(card, new Date());
+    const result = validateCard(card, new Date(), c.errors);
     if (!result.valid) {
       setErrors(result.errors);
       const first = FIELDS.find((f) => result.errors[f]);
-      const target = { number: numberRef, expiry: expiryRef, cvc: cvcRef, name: nameRef }[first ?? "number"];
+      const target = { number: numberRef, expiry: expiryRef, cvc: cvcRef, name: nameRef }[
+        first ?? "number"
+      ];
       target.current?.focus();
-      announce(`Check your card details: ${Object.values(result.errors).join(" ")}`);
+      announce(fmt(c.check, { errors: Object.values(result.errors).join(" ") }));
       return;
     }
     setBusy(true);
@@ -56,7 +62,7 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
       // Declines are decided in the browser too; the card is never sent anywhere.
       await new Promise((r) => setTimeout(r, 900));
       setBusy(false);
-      setDeclined("Your card was declined. Try another card.");
+      setDeclined(c.declined);
       return;
     }
     try {
@@ -64,7 +70,7 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
       const res = await api<{ returnUrl: string }>(`/api/payments/checkout/${checkoutId}`, {
         body: { brand: result.brand, last4: result.last4 },
       });
-      announce("Payment successful.");
+      announce(c.success);
       router.push(res.returnUrl);
     } catch (err) {
       setDeclined((err as Error).message);
@@ -79,23 +85,28 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
   return (
     <form onSubmit={pay} noValidate className="grid gap-5">
       <h1 id="pay-heading" className="text-xl font-semibold">
-        Pay with card
+        {c.title}
       </h1>
 
       <fieldset className="grid gap-2">
-        <legend className="mb-2 text-sm font-semibold">Saved cards</legend>
-        {SAVED_CARDS.map((c) => {
-          const b = detectBrand(c.number)!;
-          const last4 = c.number.slice(-4);
-          const selected = card.number === c.number;
+        <legend className="mb-2 text-sm font-semibold">{c.saved}</legend>
+        {SAVED_CARDS.map((s) => {
+          const b = detectBrand(s.number)!;
+          const last4 = s.number.slice(-4);
+          const selected = card.number === s.number;
           return (
             <button
-              key={c.id}
+              key={s.id}
               type="button"
               aria-pressed={selected}
-              aria-label={`Use ${BRAND_NAME[b]} ending in ${last4}, ${c.name}, expires ${c.expiry}`}
+              aria-label={fmt(c.useSaved, {
+                brand: BRAND_NAME[b],
+                last4,
+                name: s.name,
+                expiry: s.expiry,
+              })}
               onClick={() => {
-                setCard({ number: c.number, expiry: c.expiry, cvc: c.cvc, name: c.name });
+                setCard({ number: s.number, expiry: s.expiry, cvc: s.cvc, name: s.name });
                 setErrors({});
                 setDeclined(null);
               }}
@@ -107,25 +118,28 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
                   {BRAND_NAME[b]} •••• {last4}
                 </span>
                 <span className="text-xs text-muted">
-                  {c.name} · Expires {c.expiry}
+                  {fmt(c.expires, { name: s.name, expiry: s.expiry })}
                 </span>
               </span>
-              <span aria-hidden="true" className={`h-4 w-4 rounded-full border-2 ${selected ? "border-accent bg-accent" : "border-line"}`} />
+              <span
+                aria-hidden="true"
+                className={`h-4 w-4 rounded-full border-2 ${selected ? "border-accent bg-accent" : "border-line"}`}
+              />
             </button>
           );
         })}
       </fieldset>
 
       <div className="flex items-center gap-3 text-xs text-muted" aria-hidden="true">
-        <span className="h-px flex-1 bg-line" /> or enter card details <span className="h-px flex-1 bg-line" />
+        <span className="h-px flex-1 bg-line" /> {c.or} <span className="h-px flex-1 bg-line" />
       </div>
 
       <fieldset className="grid gap-1.5">
-        <legend className="mb-1.5 text-sm font-semibold">Card information</legend>
+        <legend className="mb-1.5 text-sm font-semibold">{c.info}</legend>
         <div className="overflow-hidden rounded-lg border border-line shadow-sm">
           <div className="relative border-b border-line">
             <label htmlFor="cc-number" className="sr-only">
-              Card number
+              {c.number}
             </label>
             <input
               id="cc-number"
@@ -146,7 +160,7 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
           <div className="grid grid-cols-2">
             <div className="border-r border-line">
               <label htmlFor="cc-exp" className="sr-only">
-                Expiry (MM/YY)
+                {c.expiry}
               </label>
               <input
                 id="cc-exp"
@@ -159,20 +173,25 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
                 aria-invalid={Boolean(errors.expiry)}
                 aria-describedby={describe("expiry")}
                 onChange={(e) =>
-                  set("expiry", e.target.value.length < card.expiry.length ? e.target.value : formatExpiry(e.target.value))
+                  set(
+                    "expiry",
+                    e.target.value.length < card.expiry.length
+                      ? e.target.value
+                      : formatExpiry(e.target.value),
+                  )
                 }
               />
             </div>
             <div>
               <label htmlFor="cc-cvc" className="sr-only">
-                Security code (CVC)
+                {c.cvc}
               </label>
               <input
                 id="cc-cvc"
                 ref={cvcRef}
                 inputMode="numeric"
                 autoComplete="cc-csc"
-                placeholder={brand === "amex" ? "CVC (4 digits)" : "CVC"}
+                placeholder={brand === "amex" ? c.cvcPlaceholderAmex : c.cvcPlaceholder}
                 maxLength={4}
                 className={inputClass("cvc")}
                 value={card.cvc}
@@ -195,7 +214,7 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
 
       <div className="grid gap-1.5">
         <label htmlFor="cc-name" className="text-sm font-semibold">
-          Name on card
+          {c.name}
         </label>
         <input
           id="cc-name"
@@ -215,21 +234,24 @@ export function CardForm({ checkoutId, amount }: { checkoutId: string; amount: s
       </div>
 
       {declined && (
-        <p role="alert" className="rounded-lg border border-danger bg-danger/10 px-3 py-2 text-sm text-danger">
+        <p
+          role="alert"
+          className="rounded-lg border border-danger bg-danger/10 px-3 py-2 text-sm text-danger"
+        >
           {declined}
         </p>
       )}
 
       <button type="submit" className="btn w-full py-3 text-base" aria-busy={busy} disabled={busy}>
-        {busy ? "Processing…" : `Pay ${amount}`}
+        {busy ? c.processing : fmt(c.pay, { amount })}
       </button>
 
       <div className="grid gap-1 text-xs text-muted">
         <p className="flex items-center gap-1.5">
-          <Lock size={14} aria-hidden="true" /> Your full card number and security code stay on this device.
+          <Lock size={14} aria-hidden="true" /> {c.stays}
         </p>
         <p className="flex items-center gap-1.5">
-          <ShieldCheck size={14} aria-hidden="true" /> Only the card type and last 4 digits are kept for your receipt.
+          <ShieldCheck size={14} aria-hidden="true" /> {c.kept}
         </p>
       </div>
     </form>

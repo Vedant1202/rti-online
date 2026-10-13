@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
+import { useT } from "@/lib/i18n/client";
 
 export function PayButton({ requestId, label }: { requestId: string; label: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useT();
   return (
     <div className="grid gap-2">
       <button
@@ -25,14 +27,14 @@ export function PayButton({ requestId, label }: { requestId: string; label: stri
           }
         }}
       >
-        {busy ? "Please wait…" : label}
+        {busy ? t.pay.wait : label}
       </button>
       {error && (
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}
-      <p className="text-xs text-muted">Safe to retry. You will never be charged twice.</p>
+      <p className="text-xs text-muted">{t.pay.safe}</p>
     </div>
   );
 }

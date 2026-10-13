@@ -3,9 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
+import { fmt } from "@/lib/i18n";
+import { useT } from "@/lib/i18n/client";
 
 export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
+  const { t } = useT();
+  const l = t.login;
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
@@ -45,7 +49,9 @@ export function LoginForm({ next }: { next?: string }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await api<{ redirectTo: string }>("/api/auth/otp/verify", { body: { email, code } });
+      const res = await api<{ redirectTo: string }>("/api/auth/otp/verify", {
+        body: { email, code },
+      });
       router.push(next && next.startsWith("/") ? next : res.redirectTo);
       router.refresh();
     } catch (err) {
@@ -59,7 +65,7 @@ export function LoginForm({ next }: { next?: string }) {
       {step === "email" ? (
         <form onSubmit={send} className="grid gap-3">
           <label className="label" htmlFor="email">
-            Email address
+            {l.email}
           </label>
           <input
             id="email"
@@ -70,23 +76,27 @@ export function LoginForm({ next }: { next?: string }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <p className="text-xs text-muted">We&apos;ll email you a 6-digit code. No password needed.</p>
+          <p className="text-xs text-muted">{l.emailHint}</p>
           <button className="btn" aria-busy={busy} disabled={busy}>
-            {busy ? "Sending…" : "Email me a code"}
+            {busy ? l.sending : l.send}
           </button>
         </form>
       ) : (
         <form onSubmit={verify} className="grid gap-3">
           <p className="text-sm">
-            We sent a code to <strong>{email}</strong>. It expires in 10 minutes.
+            {l.sent.split("{email}")[0]}
+            <strong>{email}</strong>
+            {l.sent.split("{email}")[1]}
           </p>
           {devCode && (
             <p className="rounded-md bg-warn/10 px-3 py-2 text-sm text-warn" data-testid="dev-code">
-              Demo mode: your code is <strong className="font-mono">{devCode}</strong>
+              {l.demo.split("{code}")[0]}
+              <strong className="font-mono">{devCode}</strong>
+              {l.demo.split("{code}")[1]}
             </p>
           )}
           <label className="label" htmlFor="code">
-            6-digit code
+            {l.code}
           </label>
           <input
             id="code"
@@ -100,19 +110,20 @@ export function LoginForm({ next }: { next?: string }) {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
           />
           <button className="btn" aria-busy={busy} disabled={busy}>
-            {busy ? "Checking…" : "Sign in"}
+            {busy ? l.checking : l.verify}
           </button>
           <div className="flex justify-between text-sm">
             <button type="button" className="text-accent" onClick={() => setStep("email")}>
-              Use a different email
+              {l.otherEmail}
             </button>
             <button
               type="button"
               className="text-accent disabled:text-muted"
-              aria-busy={busy} disabled={cooldown > 0 || busy}
+              aria-busy={busy}
+              disabled={cooldown > 0 || busy}
               onClick={() => send()}
             >
-              {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+              {cooldown > 0 ? fmt(l.resendIn, { n: cooldown }) : l.resend}
             </button>
           </div>
         </form>

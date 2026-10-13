@@ -1,3 +1,4 @@
+import { en } from "@/lib/i18n/en";
 import { describe, it, expect } from "vitest";
 import {
   detectBrand,
@@ -80,6 +81,13 @@ describe("validateCard", () => {
     expect(validateCard({ ...ok, cvc: "12" }, now).errors.cvc).toMatch(/3 digits/);
     expect(validateCard({ ...ok, number: "3782 822463 10005", cvc: "123" }, now).errors.cvc).toMatch(/4 digits/);
     expect(validateCard({ ...ok, name: " " }, now).errors.name).toMatch(/name/);
+  });
+
+  it("uses the messages it's given, so the checkout can show them in Hindi", () => {
+    const messages = { ...en.card.errors, numberInvalid: "कार्ड नंबर सही नहीं है।", cvcBack: "कार्ड के पीछे के {n} अंक लिखें।" };
+    const r = validateCard({ ...ok, number: "4242 4242 4242 4241", cvc: "1" }, now, messages);
+    expect(r.errors.number).toBe("कार्ड नंबर सही नहीं है।");
+    expect(r.errors.cvc).toBe("कार्ड के पीछे के 3 अंक लिखें।");
   });
 
   it("accepts a card expiring this month", () => {
