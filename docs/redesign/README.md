@@ -1,6 +1,6 @@
 # Redesign: before and after
 
-How this rebuild redesigns [rtionline.gov.in](https://rtionline.gov.in) visually and in its flows. "Before" is the real portal (public pages only, captured October 2026); "after" is this site. Spec: [SPEC.md, Version 3](../../SPEC.md#version-3-redesign-october-2026).
+How this rebuild redesigns [rtionline.gov.in](https://rtionline.gov.in) visually and in its flows. "Before" is the real portal (public pages only, captured October 2026); "after" is this site with the v4 "Bright civic" look (gradients, Poppins headings, illustrations). Spec: [SPEC.md, Version 3](../../SPEC.md#version-3-redesign-october-2026).
 
 ## What changed
 
@@ -67,6 +67,12 @@ Signed in, the home page leads with what needs doing:
 The appeal opens already filled in from the request, with the suggested ground selected:
 
 ![First appeal form](after-appeal-desktop.jpg)
+
+## New features
+
+| AI rewrite (a real Gemini answer) | Card checkout | Timeline |
+|---|---|---|
+| ![Filing form with a formal rewrite](feature-rewrite.jpg) | ![Card checkout with a saved card](feature-checkout.jpg) | ![Case progress and timeline](feature-timeline.jpg) |
 
 ## Regenerating the screenshots
 

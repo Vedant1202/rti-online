@@ -20,16 +20,21 @@ const DEMO_EMAIL = process.env.CAPTURE_EMAIL ?? "rti.archita+citizen.asha@gmail.
 
 async function shot(page: Page, name: string, fullPage = false) {
   await page.waitForLoadState("networkidle").catch(() => {});
+  await page.waitForTimeout(1600); // let entrance animations and the confetti finish
   await page.screenshot({ path: `${OUT}/${name}.jpg`, type: "jpeg", quality: 80, fullPage });
   console.log("saved", name);
 }
 
-async function open(browser: Browser, viewport: typeof DESKTOP, opts: { phone?: boolean; lang?: "hi" } = {}) {
+type Session = Awaited<ReturnType<import("@playwright/test").BrowserContext["storageState"]>>;
+
+async function open(browser: Browser, viewport: typeof DESKTOP, opts: { phone?: boolean; lang?: "hi"; session?: Session } = {}) {
   const context = await browser.newContext({
     viewport,
     colorScheme: "light",
     // A phone honours (or, on the real portal, lacks) the viewport meta tag.
     ...(opts.phone ? { isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : {}),
+    // Reuse one sign-in: the app allows 3 codes per 15 minutes per email.
+    ...(opts.session ? { storageState: opts.session } : {}),
   });
   if (opts.lang) await context.addCookies([{ name: "rti_lang", value: opts.lang, url: OURS }]);
   return context.newPage();
@@ -49,8 +54,9 @@ async function main() {
   await mkdir(OUT, { recursive: true });
   const browser = await chromium.launch();
 
-  // Before: rtionline.gov.in
+  // Before: rtionline.gov.in (unchanged since October 2026; set CAPTURE_BEFORE=1 to retake)
   let page = await open(browser, DESKTOP);
+  if (process.env.CAPTURE_BEFORE) {
   await page.goto(REAL);
   await shot(page, "before-home-desktop");
   await page.goto(`${REAL}/guidelines.php?request`);
@@ -62,6 +68,7 @@ async function main() {
   page = await open(browser, PHONE, { phone: true });
   await page.goto(REAL);
   await shot(page, "before-home-phone");
+  }
 
   // After: this rebuild, signed out
   page = await open(browser, DESKTOP);
@@ -71,9 +78,10 @@ async function main() {
   await page.goto(OURS);
   await shot(page, "after-home-phone");
 
-  // After: signed in as the demo citizen
+  // After: signed in as the demo citizen (one sign-in, reused below)
   page = await open(browser, DESKTOP);
   await signIn(page);
+  const session = await page.context().storageState();
   await page.goto(OURS);
   await shot(page, "after-citizen-home-desktop");
   const appealHref = await page.getByRole("link", { name: "File first appeal" }).first().getAttribute("href");
@@ -90,15 +98,13 @@ async function main() {
   await page.goto(`${OURS}${appealHref}`);
   await shot(page, "after-appeal-desktop");
 
-  page = await open(browser, PHONE, { phone: true });
-  await signIn(page);
+  page = await open(browser, PHONE, { phone: true, session });
   await page.goto(OURS);
   await shot(page, "after-citizen-home-phone");
   await page.goto(`${OURS}/requests/${overdueId}`);
   await shot(page, "after-case-phone");
 
-  page = await open(browser, PHONE, { phone: true, lang: "hi" });
-  await signIn(page);
+  page = await open(browser, PHONE, { phone: true, lang: "hi", session });
   await page.goto(OURS);
   await shot(page, "after-hindi-phone");
 
