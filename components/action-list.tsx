@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, FileUp, IndianRupee, MailOpen, Scale } from "lucide-react";
 import type { NextAction } from "@/lib/next-action";
+import { IconTile, type TileTone } from "./icon-tile";
 import type { Dict } from "@/lib/i18n";
 import { fmt } from "@/lib/i18n";
 import { formatRupees } from "@/lib/rti/fees";
@@ -8,8 +9,21 @@ import { formatDate } from "@/lib/format";
 
 type Item = { action: NextAction; subject: string; regNo: string | null };
 
-/** What one action looks like: icon, title, a line of explanation and its buttons. */
+/** Each kind of action has its own colour: money saffron, documents indigo, replies teal, appeals rose. */
+const TONE: Record<NextAction["kind"], TileTone> = {
+  pay_fee: "saffron",
+  pay_additional: "saffron",
+  upload_document: "indigo",
+  read_reply: "teal",
+  appeal_no_reply: "rose",
+};
+
+/** What one action looks like: icon, colour, title, a line of explanation and its buttons. */
 export function describeAction(a: NextAction, t: Dict) {
+  return { tone: TONE[a.kind], ...describe(a, t) };
+}
+
+function describe(a: NextAction, t: Dict) {
   switch (a.kind) {
     case "pay_fee":
       return {
@@ -52,13 +66,13 @@ export function ActionList({ items, t }: { items: Item[]; t: Dict }) {
   return (
     <ul className="grid gap-3">
       {items.map(({ action, subject, regNo }) => {
-        const { Icon, title, text, links } = describeAction(action, t);
+        const { Icon, tone, title, text, links } = describeAction(action, t);
         return (
-          <li key={`${action.kind}-${action.requestId}`} className="card grid gap-3 border-l-4 border-l-saffron sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="flex gap-3">
-              <Icon size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-saffron" />
+          <li key={`${action.kind}-${action.requestId}`} className="card grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="flex gap-4">
+              <IconTile icon={Icon} tone={tone} />
               <div className="grid gap-0.5">
-                <p className="font-semibold">{title}</p>
+                <p className="font-display font-semibold">{title}</p>
                 <p className="text-sm text-muted">{text}</p>
                 <p className="text-sm">
                   {subject}

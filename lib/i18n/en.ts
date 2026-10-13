@@ -88,6 +88,7 @@ export const en = {
     statsTitle: "Reply times",
     statsText: "See how fast each ministry answers.",
     welcome: "Your RTI requests",
+    welcomeText: "Here's where your requests stand today.",
     needsAction: "Needs your action",
     noActions: "Nothing needs your attention",
     noActionsText: "Your requests are with the officers. We'll email you when something changes.",

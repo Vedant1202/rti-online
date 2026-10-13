@@ -36,6 +36,9 @@ test("a citizen's home shows what needs doing; an additional fee is 2 clicks fro
   await citizen.goto("/");
   await expect(citizen.getByTestId("no-actions")).toContainText("Nothing needs your attention");
   await expect(citizen.getByTestId("in-progress")).toContainText(subject);
+  // The welcome band counts what needs doing and what's in progress.
+  await expect(citizen.getByTestId("count-actions")).toHaveText("0");
+  await expect(citizen.getByTestId("count-progress")).toHaveText("1");
 
   const nodal = await as(browser, officer("MORLY", "nodal"), viewport);
   await nodal.goto("/officer/nodal");
@@ -53,6 +56,7 @@ test("a citizen's home shows what needs doing; an additional fee is 2 clicks fro
   await expect(cpio.getByText("Waiting for the additional fee")).toBeVisible();
 
   await citizen.goto("/");
+  await expect(citizen.getByTestId("count-actions")).toHaveText("1");
   const actions = citizen.getByRole("region", { name: "Needs your action" });
   await expect(actions).toContainText(subject);
   await actions.getByRole("link", { name: "Pay ₹24" }).click(); // 1

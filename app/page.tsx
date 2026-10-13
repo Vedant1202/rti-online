@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { BadgeCheck, BarChart3, CheckCircle2, ChevronRight, Clock, FilePlus2, Languages, ListChecks, Sparkles } from "lucide-react";
+import { BadgeCheck, BarChart3, ChevronRight, Clock, FilePlus2, Languages, ListChecks, Sparkles } from "lucide-react";
 import { IconTile } from "@/components/icon-tile";
 import { HeroPreview } from "@/components/hero-preview";
-import { AppealArt, PayArt, ReplyArt, WriteArt } from "@/components/illustrations";
+import { AllClearArt, AppealArt, EmptyArt, PayArt, ReplyArt, WriteArt } from "@/components/illustrations";
 import { InfoTip } from "@/components/info-tip";
 import { ActionList } from "@/components/action-list";
 import { Pill } from "@/components/pill";
@@ -144,24 +144,43 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
   const actions = list.flatMap((r) =>
     r.actions.map((action) => ({ action, subject: r.subject, regNo: r.regNo })),
   );
-  const active = list
-    .filter((r) => !["closed_unpaid", "appeal_decided"].includes(r.status))
-    .slice(0, 5);
+  const active = list.filter((r) => !["closed_unpaid", "appeal_decided"].includes(r.status));
   return (
     <div className="grid gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">{t.home.welcome}</h1>
-        <Link href="/requests/new" className="btn">
-          <FilePlus2 size={18} aria-hidden="true" /> {t.home.file}
-        </Link>
-      </div>
+      <section
+        data-testid="welcome"
+        className="bg-hero rise grid gap-6 overflow-hidden rounded-3xl px-6 py-8 sm:px-10 md:grid-cols-[1fr_auto] md:items-center"
+        style={{ boxShadow: "var(--shadow-lg)" }}
+      >
+        <div className="grid gap-2">
+          <h1 className="text-3xl font-bold text-hero-ink md:text-4xl">{t.home.welcome}</h1>
+          <p className="text-hero-muted">{t.home.welcomeText}</p>
+          <Link href="/requests/new" className="btn-light mt-2 w-fit">
+            <FilePlus2 size={18} aria-hidden="true" /> {t.home.file}
+          </Link>
+        </div>
+        <dl className="grid grid-cols-2 gap-3 md:w-80">
+          <div className="rounded-2xl bg-white/12 p-4 ring-1 ring-white/20">
+            <dt className="text-sm text-hero-muted">{t.home.needsAction}</dt>
+            <dd data-testid="count-actions" className="font-display text-4xl font-bold text-hero-ink">
+              {actions.length}
+            </dd>
+          </div>
+          <div className="rounded-2xl bg-white/12 p-4 ring-1 ring-white/20">
+            <dt className="text-sm text-hero-muted">{t.home.inProgress}</dt>
+            <dd data-testid="count-progress" className="font-display text-4xl font-bold text-hero-ink">
+              {active.length}
+            </dd>
+          </div>
+        </dl>
+      </section>
 
-      <section className="grid gap-3" aria-labelledby="actions-heading">
-        <h2 id="actions-heading" className="flex items-center gap-2 text-lg font-bold">
+      <section className="rise rise-1 grid gap-3" aria-labelledby="actions-heading">
+        <h2 id="actions-heading" className="flex items-center gap-2 text-xl font-bold">
           {t.home.needsAction}
           {actions.length > 0 && (
             <span
-              className="rounded-full bg-saffron px-2 text-xs font-bold text-surface"
+              className="rounded-full bg-tile-saffron-bg px-2.5 py-0.5 font-sans text-xs font-bold text-tile-saffron-fg"
               aria-hidden="true"
             >
               {actions.length}
@@ -171,10 +190,10 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
         {actions.length > 0 ? (
           <ActionList items={actions} t={t} />
         ) : (
-          <div className="card flex gap-3" data-testid="no-actions">
-            <CheckCircle2 size={22} aria-hidden="true" className="shrink-0 text-ok" />
+          <div className="card flex items-center gap-4" data-testid="no-actions">
+            {list.length ? <AllClearArt className="h-20 w-28 shrink-0" /> : <EmptyArt className="h-20 w-28 shrink-0" />}
             <div className="grid gap-0.5">
-              <p className="font-semibold">{t.home.noActions}</p>
+              <p className="font-display font-semibold">{t.home.noActions}</p>
               <p className="text-sm text-muted">
                 {list.length ? t.home.noActionsText : t.home.noneText}
               </p>
@@ -185,12 +204,12 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
 
       {active.length > 0 && (
         <section
-          className="grid gap-3"
+          className="rise rise-2 grid gap-3"
           aria-labelledby="progress-heading"
           data-testid="in-progress"
         >
           <div className="flex items-center justify-between gap-3">
-            <h2 id="progress-heading" className="text-lg font-bold">
+            <h2 id="progress-heading" className="text-xl font-bold">
               {t.home.inProgress}
             </h2>
             <Link href="/requests" className="text-sm font-semibold text-accent">
@@ -198,11 +217,11 @@ async function CitizenHome({ user, t }: { user: User; t: Dict }) {
             </Link>
           </div>
           <ul className="grid gap-2">
-            {active.map((r) => (
+            {active.slice(0, 5).map((r) => (
               <li key={r.id}>
                 <Link
                   href={`/requests/${r.id}`}
-                  className="card flex flex-wrap items-center justify-between gap-3 py-3 hover:border-accent"
+                  className="card flex flex-wrap items-center justify-between gap-3 py-4"
                 >
                   <span className="grid min-w-0 gap-0.5">
                     <span className="truncate font-semibold">{r.subject}</span>
