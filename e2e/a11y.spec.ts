@@ -30,6 +30,8 @@ for (const theme of ["light", "dark"] as const) {
       await page.getByLabel("What information do you want?").fill("Refund status for PNR 1234567890.");
       await page.getByRole("button", { name: "Continue" }).click();
       await scan(page, `${theme} wizard step 2`);
+      await page.getByRole("button", { name: /Browse all/ }).click();
+      await scan(page, `${theme} wizard step 2, full list`);
       await page.getByRole("radio", { name: /Railways/ }).check();
       await page.getByRole("button", { name: "Continue" }).click();
       await scan(page, `${theme} wizard step 3`);
@@ -71,6 +73,8 @@ test("keyboard only: file → pay → see the timeline", async ({ page }, info) 
   await tabTo("What information do you want?", "textbox");
   await page.keyboard.type("Refund status for PNR 1234567890.");
   await tabTo("Continue");
+  await page.keyboard.press("Enter");
+  await tabTo(/Browse all/);
   await page.keyboard.press("Enter");
   // Tab enters the radio group once; arrow keys move between options (native behaviour).
   for (let i = 0; i < 60 && !(await page.evaluate(() => (document.activeElement as HTMLInputElement)?.type === "radio")); i++) {

@@ -11,11 +11,10 @@ import { detectStateBody } from "@/lib/rti/state-body";
 import { TEMPLATES, unfilledPlaceholders } from "@/lib/rti/templates";
 import { RewritePanel } from "./rewrite-panel";
 import { useRecommendation } from "./use-recommendation";
-import { InfoTip } from "@/components/info-tip";
 import { HelpTip } from "@/components/help-tip";
-import { Sparkles } from "lucide-react";
+import { AuthorityPicker, type AuthorityOption } from "@/components/authority-picker";
 
-export type AuthorityOption = { id: string; code: string; name: string; ministry: string; keywords: string[] };
+export type { AuthorityOption };
 
 const STEPS = ["Your request", "Authority", "Review"] as const;
 
@@ -32,16 +31,17 @@ export type Draft = Partial<{
 
 export function FilingWizard({
   authorities,
+  popular,
   draft,
   aiEnabled,
 }: {
   authorities: AuthorityOption[];
+  popular: { code: string; label: string }[];
   draft: Draft | null;
   aiEnabled: boolean;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [query, setQuery] = useState("");
   const [authorityId, setAuthorityId] = useState<string | null>(draft?.authorityId ?? null);
   const [subject, setSubject] = useState(draft?.subject ?? "");
   const [body, setBody] = useState(draft?.body ?? "");
@@ -77,11 +77,6 @@ export function FilingWizard({
   const [busy, setBusy] = useState(false);
 
   const authority = authorities.find((a) => a.id === authorityId) ?? null;
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return authorities;
-    return authorities.filter((a) => `${a.name} ${a.ministry} ${a.code}`.toLowerCase().includes(q));
-  }, [authorities, query]);
 
   const suggestions = useMemo(() => suggestAuthorities(`${subject} ${body}`, authorities), [subject, body, authorities]);
   const stateTerm = useMemo(() => detectStateBody(`${subject} ${body}`), [subject, body]);
@@ -144,96 +139,19 @@ export function FilingWizard({
       {step === 1 && (
         <section className="card grid gap-4">
           {stateTerm && <StateWarning term={stateTerm} />}
-          {aiEnabled && (recommendation.loading || recommended) && (
-            <div className="grid gap-2" data-testid="ai-recommendation">
-              <p className="label flex items-center gap-1.5">
-                <Sparkles size={16} aria-hidden="true" className="text-accent" /> Recommended by AI
-              </p>
-              {recommendation.loading ? (
-                <div className="flex gap-2" aria-busy="true">
-                  <span className="sr-only" role="status">
-                    Finding the best department…
-                  </span>
-                  <span className="skeleton h-9 w-56" aria-hidden="true" />
-                  <span className="skeleton h-9 w-24" aria-hidden="true" />
-                </div>
-              ) : (
-                recommended && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      className={authorityId === recommended.id ? "btn" : "btn-ghost"}
-                      aria-pressed={authorityId === recommended.id}
-                      onClick={() => setAuthorityId(recommended.id)}
-                    >
-                      <Sparkles size={16} aria-hidden="true" /> {recommended.name}
-                    </button>
-                    {recommendation.result?.reason && <InfoTip label="why this department">{recommendation.result.reason}</InfoTip>}
-                  </div>
-                )
-              )}
-            </div>
-          )}
-          {suggestions.length > 0 && (
-            <div className="grid gap-2" data-testid="suggestions">
-              <p className="label">Suggested from your request</p>
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    className={authorityId === a.id ? "btn" : "btn-ghost"}
-                    onClick={() => setAuthorityId(a.id)}
-                  >
-                    {a.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <h2 className="flex items-center gap-1 text-lg font-bold">
-            Which public authority holds the information? <HelpTip topic="publicAuthority" />
-          </h2>
-          <input
-            className="input"
-            placeholder="Search by ministry or department"
-            aria-label="Search authorities"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+          <AuthorityPicker
+            authorities={authorities}
+            popular={popular}
+            value={authorityId}
+            onChange={setAuthorityId}
+            suggestions={suggestions}
+            ai={{
+              show: aiEnabled,
+              loading: recommendation.loading,
+              authority: recommended,
+              reason: recommendation.result?.reason ?? null,
+            }}
           />
-          <div className="grid gap-2" role="radiogroup" aria-label="Public authority">
-            {matches.map((a) => (
-              <label
-                key={a.id}
-                data-authority-id={a.id}
-                className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${authorityId === a.id ? "border-accent bg-accent/5" : "border-line"}`}
-              >
-                <input
-                  type="radio"
-                  name="authority"
-                  className="mt-1"
-                  checked={authorityId === a.id}
-                  onChange={() => setAuthorityId(a.id)}
-                />
-                <span className="grid">
-                  <span className="flex flex-wrap items-center gap-2 font-semibold">
-                    {a.name}
-                    {recommended?.id === a.id && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-accent px-2 py-0.5 text-xs font-semibold text-accent">
-                        <Sparkles size={12} aria-hidden="true" /> Recommended
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-xs text-muted">{a.ministry}</span>
-                </span>
-              </label>
-            ))}
-            {matches.length === 0 && <p className="text-sm text-muted">No central authority matches that search.</p>}
-          </div>
-          <p className="text-xs text-muted">
-            This portal covers central government authorities only. Requests to state government
-            offices must be filed with the state.
-          </p>
         </section>
       )}
 

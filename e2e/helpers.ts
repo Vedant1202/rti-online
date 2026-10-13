@@ -49,13 +49,20 @@ export async function as(browser: Browser, email: string, viewport?: { width: nu
 
 type FileOpts = { authority: RegExp; subject: string; body: string };
 
+/** Picks an authority from the full list ("Browse all") in the filing form. */
+export async function chooseAuthority(page: Page, name: RegExp) {
+  const browse = page.getByRole("button", { name: /Browse all/ });
+  if ((await browse.getAttribute("aria-expanded")) !== "true") await browse.click();
+  await page.getByRole("radio", { name }).check();
+}
+
 /** Fills in the filing form and stops on the card checkout page. */
 export async function startCheckoutViaUi(page: Page, opts: FileOpts) {
   await page.goto("/requests/new");
   await page.getByLabel("Subject").fill(opts.subject);
   await page.getByLabel("What information do you want?").fill(opts.body);
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("radio", { name: opts.authority }).check();
+  await chooseAuthority(page, opts.authority);
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByRole("button", { name: /^Pay ₹/ }).click();

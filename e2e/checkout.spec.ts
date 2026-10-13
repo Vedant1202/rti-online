@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { login } from "./helpers";
+import { chooseAuthority, login } from "./helpers";
 
 async function startCheckout(page: Page, subject: string) {
   await login(page, `pay-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`);
@@ -7,7 +7,7 @@ async function startCheckout(page: Page, subject: string) {
   await page.getByLabel("Subject").fill(subject);
   await page.getByLabel("What information do you want?").fill("Status of refund for PNR 1234567890.");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("radio", { name: /Railways/ }).check();
+  await chooseAuthority(page, /Railways/);
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await page.getByRole("button", { name: "Pay ₹10" }).click();

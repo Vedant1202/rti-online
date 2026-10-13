@@ -94,6 +94,23 @@ export const en = {
     noReplyLateText: "The 30-day appeal window has passed. You can still appeal with a reason for the delay.",
     fileAppeal: "File first appeal",
   },
+  picker: {
+    heading: "Which public authority holds the information?",
+    recommended: "Recommended by AI",
+    finding: "Finding the best department…",
+    whyLabel: "why this department",
+    recommendedTag: "Recommended",
+    suggested: "Suggested from your request",
+    popular: "Popular",
+    browse: "Browse all {n} authorities",
+    searchLabel: "Search authorities",
+    searchPlaceholder: "Search by name, ministry or topic",
+    noMatch: "No central authority matches that search.",
+    centralOnly:
+      "This portal covers central government authorities only. Requests to state government offices must be filed with the state.",
+    selected: "Selected:",
+    change: "Change",
+  },
   case: {
     progress: "Progress",
     stepOf: "Step {n} of {total}",
