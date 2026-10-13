@@ -479,7 +479,7 @@ docs/redesign/             → before/after screenshots and click counts
 
 ## Version 4: Visual polish (October 2026)
 
-Plan: [tasks/plan.md](tasks/plan.md). Status: **Draft, awaiting sign-off.** Workflow: commit and push directly to `main`.
+Plan: [tasks/plan.md](tasks/plan.md). Status: **Built and deployed (October 2026).** Workflow: commit and push directly to `main`. Evidence: [docs/redesign](docs/redesign/README.md).
 
 ### Objective
 
@@ -577,3 +577,16 @@ It should feel like a well-made consumer app for a public service: friendly and 
 - **Always:** colours, gradients, shadows and radii come only from tokens in `globals.css`; decoration is `aria-hidden`; motion respects reduced motion; new text goes into both dictionaries.
 - **Ask first:** any new dependency (an animation or illustration library), changing flows or wording beyond new decorative or summary text, removing a page element that tests rely on.
 - **Never:** third-party illustrations or stock photos of unclear licence, an emblem or official branding, colour as the only signal, or a change that breaks the 375px or 125% layouts.
+
+### Changes made during the v4 build
+
+- **Page background:** a faint lavender (`#f6f4fb` light, `#100d1c` dark) instead of plain grey, so white cards stand out.
+- **Utility bar:** it now sits outside the sticky header, so it scrolls away and only the header row sticks.
+- **Reduced motion:** sets `animation: none` instead of shortening animations, so nothing moves at all and confetti never appears.
+- **Accessibility scans:** axe now waits for entrance animations to finish before measuring contrast, since a half-faded element isn't the real page.
+- **Reply times:** desktop keeps a real table for its meaning; phones get one card per authority. The smoke test counts table rows on desktop and cards on phones.
+- **Phone tab bar:** stays solid, because a see-through bar let page text show behind it.
+- **Build cache:** right after editing `globals.css`, a production build sometimes reused stale CSS from the build cache. E2E runs after style changes start from `rm -rf .next/cache`.
+- **Materials:**
+  - The Google Slides images were swapped through the connector's `replaceImage`, using commit-pinned GitHub URLs to avoid caching.
+  - The deck artifact, both PDFs and `docs/redesign` show the v4 look.

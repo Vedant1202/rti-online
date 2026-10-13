@@ -27,8 +27,9 @@ See [SPEC.md](SPEC.md) for the specification, [tasks/plan.md](tasks/plan.md) for
   (A− / A / A+) and System, Light or Dark theme from the top bar. Officer pages stay in English.
 - **Authorities:** 25 central public authorities across 17 ministries, six one-click Popular chips, and a
   searchable list grouped by ministry (searches topics in English and Hindi).
-- **Design:** colours, type and controls follow UX4G 3.0, the Government of India's design system, without
-  any official branding. On phones the header is one row and citizens get a bottom tab bar.
+- **Design:** a bright "civic" look: indigo-to-violet gradients, Poppins headings, colour-coded icon tiles,
+  illustrations drawn for the project and gentle motion (off with reduced motion), on UX4G-based tokens with
+  AA contrast and no official branding. On phones the header is one row and citizens get a bottom tab bar.
 - **Card checkout:** brand detection as you type (Visa, Mastercard, RuPay, American Express), number, expiry
   and CVC checks, and two saved cards for one-click filling. Nothing is charged. The full card number and CVC
   never leave the browser; only the brand and last 4 digits are stored for the receipt.
